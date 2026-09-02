@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quality Intelligence v16 — Auto Shared Database</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#172033;--muted:#667085;--line:#e4e8ef;--nav:#0f172a;--accent:#4f63d8;--accent2:#7c4dff;--good:#127a52;--warn:#9a6300;--danger:#b42318;--shadow:0 10px 28px rgba(15,23,42,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:242px;background:linear-gradient(180deg,var(--nav),#0b1220);padding:18px 13px;color:#cbd5e1;overflow:auto;z-index:20}
+.brand{color:#fff;font-weight:900;font-size:18px;padding:10px 11px 19px}.brand small{display:block;color:#8391a7;font-size:9px;letter-spacing:.14em;margin-top:5px}
+.navbtn{display:block;width:100%;border:0;background:transparent;color:#aeb8c8;text-align:left;padding:11px 12px;border-radius:9px;margin:2px 0;font-weight:750}.navbtn:hover,.navbtn.active{background:#253149;color:#fff}
+.main{margin-left:242px;min-height:100vh}.top{min-height:74px;background:#fff;border-bottom:1px solid var(--line);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;position:sticky;top:0;z-index:10}
+.title{font-size:21px;font-weight:900}.sub{font-size:11px;color:var(--muted);margin-top:3px}.topactions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:850;padding:6px 9px;border-radius:99px;background:#fff1f0;color:#a61b1b;border:1px solid #ffd0cc}.status.ok{background:#eefbf4;color:#17623f;border-color:#bfe7d1}.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.btn{border:1px solid #d4d9e3;background:#fff;border-radius:8px;padding:9px 11px;color:#344054;font-weight:750}.btn:hover{background:#f6f7fa}.btn.primary{background:#293c86;color:#fff;border-color:#293c86}.btn.danger{color:#a61b1b;border-color:#f2b8b5}.btn.good{color:#17623f;border-color:#bfe7d1;background:#f4fbf7}
+.content{max-width:1500px;margin:auto;padding:25px 26px 50px}.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(6,1fr)}.two{grid-template-columns:repeat(2,1fr)}.three{grid-template-columns:repeat(3,1fr)}.four{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:var(--shadow)}.card h2{font-size:15px;margin:0 0 3px}.card h3{font-size:13px;margin:0 0 8px}
+.desc,.note{font-size:11px;color:var(--muted);line-height:1.5}.kpi{min-height:105px;position:relative;overflow:hidden}.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent),var(--accent2))}
+.kpi .lab{font-size:10px;font-weight:850;letter-spacing:.06em;text-transform:uppercase;color:#7d8798}.kpi .val{font-size:28px;font-weight:900;margin-top:8px;letter-spacing:-.04em}.kpi .hint{font-size:10px;color:var(--muted);margin-top:5px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.input,.select{border:1px solid #d4d9e3;background:#fff;border-radius:8px;padding:9px 10px;min-width:145px}.input{min-width:230px}
+.bar{margin:12px 0}.barhead{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:800;margin-bottom:5px}.track{height:10px;background:#edf0f5;border-radius:99px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.insight{padding:12px 13px;border:1px solid var(--line);border-radius:9px;background:#fbfcff;margin:8px 0;line-height:1.55;font-size:11px}.insight b{display:block;margin-bottom:3px}
+.badge{display:inline-block;padding:4px 7px;border-radius:99px;background:#eef2ff;color:#3549a1;font-size:10px;font-weight:850;margin:2px}.callout{padding:11px 13px;background:#eefbf4;border:1px solid #bfe7d1;color:#17623f;border-radius:8px;font-size:11px;font-weight:750}.warn{background:#fff7e8;border-color:#f5d39e;color:#855a08}
+.teamcard{border:1px solid var(--line);border-radius:11px;padding:13px;background:#fbfcff}.teamname{font-size:15px;font-weight:900}.lead{font-size:10px;color:var(--muted)}
+.tablewrap{overflow:auto;max-height:640px;border:1px solid var(--line);border-radius:9px}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:10px 11px;border-bottom:1px solid var(--line);font-size:11px;vertical-align:top;text-align:left}th{background:#f7f8fb;position:sticky;top:0;z-index:2}tbody tr:hover td{background:#fafbff}
+.matrix{min-width:1100px}.matrix th,.matrix td{text-align:center}.matrix th:first-child,.matrix td:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:3}.heat{display:block;padding:5px;border-radius:5px;font-weight:850}
+.drill-btn{width:100%;min-width:34px;border:0;background:transparent;padding:0;border-radius:6px;color:inherit}.drill-btn[disabled]{cursor:default;opacity:.5}.drill-btn:hover .heat{box-shadow:inset 0 0 0 1px rgba(79,99,216,.35)}
+.upload{border:1px solid var(--line);border-radius:11px;padding:14px;background:#fbfcff}.upload input,.upload select{width:100%;margin:6px 0 10px;padding:9px;border:1px solid #d6dae3;border-radius:8px;background:#fff}
+.empty{text-align:center;padding:30px;color:var(--muted);font-size:11px}.focus,.alert-card,.review-item{border:1px solid var(--line);border-radius:10px;padding:13px;margin:8px 0;background:#fbfcff}.focus .name{font-size:14px;font-weight:900}
+.rank-card{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfcff}.rank-card.first{border-color:#e6c55f;background:#fffdf4}.rank-place{font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase}.rank-name{font-size:20px;font-weight:950;margin-top:5px}.rank-count{font-size:27px;font-weight:950;margin-top:8px}.rank-comment{font-size:11px;line-height:1.55;color:#536072;margin-top:9px}
+.rank-row{display:grid;grid-template-columns:82px 90px 1fr 120px;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding:12px 4px}.rank-pos,.rank-proc{font-weight:950}.rank-errors{text-align:right;font-weight:900}
+.quick-grid-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}.quick-grid{width:100%;min-width:1320px;border-collapse:collapse}.quick-grid td{padding:5px}.quick-grid input,.quick-grid select{width:100%;border:1px solid transparent;background:transparent;border-radius:6px;padding:8px 7px;font-size:12px}.quick-grid input:focus,.quick-grid select:focus{outline:none;border-color:#8797ee;background:#f8f9ff}.team-auto{background:#f7f8fb!important;color:#667085}.row-remove{border:0;background:transparent;color:#a61b1b;font-weight:900;padding:7px}.row-error td{background:#fff5f4}.row-saved td{background:#effaf4}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setup-grid input{width:100%;margin-top:6px}.codebox{white-space:pre-wrap;word-break:break-word;font:11px Consolas,monospace;background:#0f172a;color:#dbeafe;padding:13px;border-radius:9px;max-height:240px;overflow:auto}
+.drill-modal{position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:38px 18px;overflow:auto}.drill-modal.show{display:flex}.drill-box{width:min(1100px,100%);background:#fff;border-radius:15px;overflow:hidden}.drill-head{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}.drill-body{padding:0 18px 18px}.drill-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 0}.drill-stat{border:1px solid var(--line);border-radius:9px;padding:10px;background:#fbfcff}.drill-stat b{font-size:18px;display:block}
+@media(max-width:1150px){.sidebar{width:195px}.main{margin-left:195px}.kpis{grid-template-columns:repeat(3,1fr)}.two,.three,.four{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.sidebar{position:static;width:100%;display:flex;overflow:auto;padding:7px}.brand{display:none}.navbtn{white-space:nowrap;width:auto}.main{margin-left:0}.top{padding:10px 12px}.content{padding:15px 10px}.kpis,.two,.three,.four,.setup-grid{grid-template-columns:1fr 1fr}.topactions .btn{display:none}.rank-row{grid-template-columns:55px 55px 1fr}.rank-errors{grid-column:3;text-align:left}.drill-summary{grid-template-columns:1fr 1fr}}
+@media print{.sidebar,.topactions,.filters,.no-print{display:none!important}.main{margin:0}.page{display:block!important}.card{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+ <div class="brand">QUALITY IQ<small>AUTO SHARED DATABASE • v16</small></div>
+ <button class="navbtn active" data-page="overview">▦ Executive Overview</button>
+ <button class="navbtn" data-page="ranking">🏆 Quality Ranking</button>
+ <button class="navbtn" data-page="scorecard">★ Executive Scorecard</button>
+ <button class="navbtn" data-page="pareto">◈ Pareto Analysis</button>
+ <button class="navbtn" data-page="coaching">◎ Coaching Focus</button>
+ <button class="navbtn" data-page="alerts">⚑ Repeat Mistake Alerts</button>
+ <button class="navbtn" data-page="theme-review">◇ Theme Review</button>
+ <button class="navbtn" data-page="teams">▤ Team Analysis</button>
+ <button class="navbtn" data-page="processors">♙ Processor Analysis</button>
+ <button class="navbtn" data-page="reviewers">✓ Reviewer Analysis</button>
+ <button class="navbtn" data-page="distribution">◫ Distribution Analysis</button>
+ <button class="navbtn" data-page="repeats">↻ Repeat Projects</button>
+ <button class="navbtn" data-page="log">✚ Log Entry</button>
+ <button class="navbtn" data-page="register">☷ Full Register</button>
+ <button class="navbtn" data-page="data">⬆ Data Center</button>
+</aside>
+
+<div class="main">
+<header class="top">
+ <div><div class="title" id="pageTitle">Executive Overview</div><div class="sub" id="topSub">Shared database not connected yet.</div></div>
+ <div class="topactions">
+   <span class="status" id="dbStatus"><span class="dot"></span><span id="dbStatusText">Disconnected</span></span>
+   <button class="btn" onclick="window.print()">Print / PDF</button>
+   <button class="btn" onclick="exportCSV()">Export CSV</button>
+   <button class="btn primary" onclick="resetFilters()">Reset Filters</button>
+ </div>
+</header>
+
+<div class="content">
+<div class="filters no-print">
+ <select id="teamFilter" class="select"><option value="">All Teams</option></select>
+ <select id="monthFilter" class="select"><option value="">All Months</option></select>
+ <select id="processorFilter" class="select"><option value="">All Processors</option></select>
+ <select id="reviewerFilter" class="select"><option value="">All Reviewers</option></select>
+ <select id="distFilter" class="select"><option value="">All Distribution Types</option></select>
+</div>
+
+<section class="page active" id="overview">
+ <div id="connectNotice" class="callout warn" style="margin-bottom:14px">Connecting automatically to the shared database…</div>
+ <div class="grid kpis" id="kpis"></div>
+ <div class="grid two" style="margin-top:14px">
+  <div class="card"><h2>Team Error Volume</h2><div id="teamBars"></div></div>
+  <div class="card"><h2>Primary Error Themes</h2><div class="desc">One source error = one primary theme.</div><div id="themeBars"></div><div class="callout" id="reconcile"></div></div>
+ </div>
+ <div class="grid two" style="margin-top:14px">
+  <div class="card"><h2>Processor Error Volume</h2><div id="processorBars"></div></div>
+  <div class="card"><h2>Management Signals</h2><div id="signals"></div></div>
+ </div>
+</section>
+
+<section class="page" id="ranking">
+ <div class="card"><h2>Processor Quality Ranking</h2><div class="desc">Lowest recorded error volume ranks first. This is error-volume ranking, not efficiency/productivity rate.</div><div id="rankingCoverage" class="callout" style="margin-top:12px"></div><div id="rankingPodium" class="grid three" style="margin-top:14px"></div><div id="rankingList" style="margin-top:14px"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Team Error-Volume Ranking</h2><div id="teamRankingList"></div></div>
+</section>
+
+<section class="page" id="scorecard">
+ <div class="card"><h2>Team Executive Scorecard</h2><div class="grid four" id="teamScorecards" style="margin-top:13px"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Processor Scorecard</h2><div id="processorScorecards"></div></div>
+</section>
+
+<section class="page" id="pareto">
+ <div class="card"><h2>Pareto Analysis</h2><div class="desc">Mutually-exclusive primary themes with cumulative share.</div><div id="paretoTable"></div></div>
+</section>
+
+<section class="page" id="coaching"><div class="grid two"><div class="card"><h2>Team Coaching Focus</h2><div id="teamCoaching"></div></div><div class="card"><h2>Processor Coaching Focus</h2><div id="processorCoaching"></div></div></div></section>
+
+<section class="page" id="alerts"><div class="card"><h2>Repeat Mistake Alerts</h2><div class="desc">Same Processor + same Primary Theme appearing at least twice in the current selection.</div><div id="repeatAlertSummary" class="grid three" style="margin-top:13px"></div><div id="repeatAlerts"></div></div></section>
+
+<section class="page" id="theme-review">
+ <div class="grid two">
+  <div class="card"><h2>Needs Review Queue</h2><div class="desc">Unclassified records waiting for a final theme.</div><div id="reviewQueue"></div></div>
+  <div class="card"><h2>Manual Theme Override</h2><input id="overrideSearch" class="input" style="width:100%;margin-top:10px" placeholder="Search project, processor, reviewer or error…"><div id="overrideResults"></div></div>
+ </div>
+</section>
+
+<section class="page" id="teams"><div class="grid four" id="teamProfiles"></div><div class="card" style="margin-top:14px"><h2>Team × Primary Theme Matrix</h2><div class="desc">Click any number to see the underlying projects.</div><div class="tablewrap"><table class="matrix" id="teamMatrix"></table></div></div></section>
+
+<section class="page" id="processors"><div class="card"><h2>Processor Analysis</h2><div id="processorDetail"></div></div><div class="card" style="margin-top:14px"><h2>Processor × Primary Theme Matrix</h2><div class="desc">Click any number to drill into actual records.</div><div class="tablewrap"><table class="matrix" id="processorMatrix"></table></div></div></section>
+
+<section class="page" id="reviewers"><div class="grid two"><div class="card"><h2>Reviewer Finding Volume</h2><div id="reviewerBars"></div></div><div class="card"><h2>Interpretation</h2><div class="insight"><b>Important</b>This is finding volume, not reviewer efficiency.</div></div></div></section>
+
+<section class="page" id="distribution"><div class="grid two"><div class="card"><h2>Distribution Type — Error Volume</h2><div class="desc">Term + Termination are combined; Loan + Loan Advance + Loan Withdrawal are combined; Term Residual stays separate.</div><div id="distBars"></div></div><div class="card"><h2>Top Distribution Signals</h2><div id="distSignals"></div></div></div></section>
+
+<section class="page" id="repeats"><div class="grid three" id="repeatKpis"></div><div class="card" style="margin-top:14px"><h2>Repeated Project IDs</h2><div class="desc">Repeated Project ID does not automatically mean the identical mistake was repeated.</div><div id="repeatList"></div></div></section>
+
+<section class="page" id="log">
+ <div class="card">
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
+   <div><h2>Log Entry — Shared Quick Entry</h2><div class="desc">Save rows directly to the shared database. Other connected PCs receive the update automatically.</div></div>
+   <div><button class="btn" type="button" id="addLogRowBtn">+ Add Row</button> <button class="btn" type="button" id="fillTodayBtn">Fill Today</button> <button class="btn primary" type="button" id="saveLogRowsBtn">Save All Rows</button></div>
+  </div>
+  <div class="quick-grid-wrap" style="margin-top:14px"><table class="quick-grid"><thead><tr><th>Date</th><th>Project ID</th><th>Distribution</th><th>Processor</th><th>Team</th><th>Reviewer</th><th>Theme</th><th>Error Details</th><th></th></tr></thead><tbody id="quickLogBody"></tbody></table></div>
+  <div id="quickSaveMessage" class="note" style="margin-top:9px"></div>
+ </div>
+ <div class="grid two" style="margin-top:14px"><div class="card"><h2>Today's Live Snapshot</h2><div class="grid two" id="todayKpis"></div><div id="todayTeamBars"></div></div><div class="card"><h2>Today's Error Themes</h2><div id="todayThemeBars"></div></div></div>
+ <div class="card" style="margin-top:14px"><h2>Shared Log Entries</h2><div class="tablewrap"><table id="logTable"></table></div></div>
+</section>
+
+<section class="page" id="register"><div class="card"><h2>Full Shared Error Register</h2><div class="filters" style="margin-top:12px"><input id="search" class="input" placeholder="Search project ID or error text…"></div><div class="note" id="shown"></div><div class="tablewrap" style="margin-top:9px"><table id="registerTable"></table></div></div></section>
+
+<section class="page" id="data">
+ <div class="card">
+  <h2>Shared Database Connection</h2>
+  <div class="desc">This GitHub version is preconfigured. Anyone opening the same link connects to the same Supabase database automatically. Shared data refreshes every 3 seconds and also listens for realtime database changes.</div>
+  <div class="grid three" style="margin-top:12px">
+   <div class="insight"><b>Connection</b><span id="dataCenterConnection">Auto-connect on load</span></div>
+   <div class="insight"><b>Auto Refresh</b>Every 3 seconds</div>
+   <div class="insight"><b>Storage</b>Supabase shared database</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="refreshDbBtn">Refresh Now</button></div>
+  <div id="dbMessage" class="note" style="margin-top:9px"></div>
+ </div>
+<div class="card" style="margin-top:14px"><h2>Full Team Data Upload</h2><div class="upload" style="margin-top:10px"><label class="note">Reporting month</label><input id="fullMonth" type="month"><label class="note">Excel / CSV</label><input id="fullFile" type="file" accept=".xlsx,.xls,.csv"><button class="btn primary" onclick="uploadDataset('FULL')">Upload to Shared DB</button><div class="note" id="fullStatus" style="margin-top:8px"></div></div></div>
+
+ <div class="card" style="margin-top:14px"><h2>Individual Team Upload</h2><div class="grid four" id="teamUploadSlots" style="margin-top:12px"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Shared Database Summary</h2><div id="dbSummary"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Fixed Team Structure</h2><div class="grid four" id="structureCards" style="margin-top:12px"></div></div>
+</section>
+</div>
+</div>
+
+<div class="drill-modal" id="drillModal" aria-hidden="true"><div class="drill-box" role="dialog" aria-modal="true"><div class="drill-head"><div><div class="title" id="drillTitle">Drill-down</div><div class="note" id="drillMeta"></div></div><button class="btn" id="drillClose">Close</button></div><div class="drill-body"><div class="filters" style="margin-top:12px"><input id="drillSearch" class="input" placeholder="Search drill-down…"><button class="btn" id="drillExport">Export selection</button></div><div class="drill-summary" id="drillSummary"></div><div class="note" id="drillCount"></div><div class="tablewrap" style="margin-top:9px"><table id="drillTable"></table></div></div></div></div>
+
+<script>
+const TEAM_CONFIG=[
+ {name:"Team Labib",lead:"LF",processors:["MM","KH","QK","HS"]},
+ {name:"Team Arpon",lead:"FA",processors:["HD","SC","SM","RH"]},
+ {name:"Team Faria",lead:"FL",processors:["NR","TM","YH","SN"]},
+ {name:"Team Salman",lead:"SS",processors:["EH","FM","SR"]}
+];
+const DIST_TYPES=["Termination","Term Residual","Termination - Partial","Hardship","Loan","Loan Refinance","RMD","RMD Calculation","In Service","Plan Termination","Plan Termination - Partial","Plan Termination - Auto Rollover","Plan Termination - Fee Out","Plan Termination - HCE","Cash Out - Fee"];
+const PRIMARY_THEMES=["Code / Age Code Error","Calculation / Amount","Vesting","GIACT / Verification","Source Selection / Fund Source","Payment / Add Payee","Participant / Personal Data","Unify / Relius / System","Plan / Rule Knowledge","Documentation / Missing Items","Notes / Follow-up","Fee / LOI Setup","Needs Review / Unclassified"];
+const AUTO_DB_URL="https://nzyrlmgwckytnfaqdogg.supabase.co";
+const AUTO_DB_KEY="sb_publishable_kRVp2WEInLsyyupqiDrWZA_DjUAd7tL";
+const AUTO_REFRESH_MS=3000;
+let db=null,dbRows=[],dbConnected=false,realtimeChannel=null,drillRows=[],themeReviewRows=[];
+const teamFilter=document.getElementById("teamFilter"),monthFilter=document.getElementById("monthFilter"),processorFilter=document.getElementById("processorFilter"),reviewerFilter=document.getElementById("reviewerFilter"),distFilter=document.getElementById("distFilter");
+const dbStatus=document.getElementById("dbStatus"),dbStatusText=document.getElementById("dbStatusText"),connectNotice=document.getElementById("connectNotice"),topSub=document.getElementById("topSub"),pageTitle=document.getElementById("pageTitle");
+const dbMessage=document.getElementById("dbMessage"),refreshDbBtn=document.getElementById("refreshDbBtn"),dataCenterConnection=document.getElementById("dataCenterConnection");
+const kpis=document.getElementById("kpis"),reconcile=document.getElementById("reconcile"),signals=document.getElementById("signals"),rankingCoverage=document.getElementById("rankingCoverage"),rankingPodium=document.getElementById("rankingPodium"),rankingList=document.getElementById("rankingList"),teamRankingList=document.getElementById("teamRankingList");
+const teamScorecards=document.getElementById("teamScorecards"),processorScorecards=document.getElementById("processorScorecards"),paretoTable=document.getElementById("paretoTable"),teamCoaching=document.getElementById("teamCoaching"),processorCoaching=document.getElementById("processorCoaching");
+const repeatAlertSummary=document.getElementById("repeatAlertSummary"),repeatAlerts=document.getElementById("repeatAlerts"),reviewQueue=document.getElementById("reviewQueue"),overrideSearch=document.getElementById("overrideSearch"),overrideResults=document.getElementById("overrideResults"),themeReview=document.getElementById("theme-review");
+const teamProfiles=document.getElementById("teamProfiles"),teamMatrix=document.getElementById("teamMatrix"),processorDetail=document.getElementById("processorDetail"),processorMatrix=document.getElementById("processorMatrix"),reviewerBars=document.getElementById("reviewerBars"),distBars=document.getElementById("distBars"),distSignals=document.getElementById("distSignals");
+const repeatKpis=document.getElementById("repeatKpis"),repeatList=document.getElementById("repeatList"),search=document.getElementById("search"),shown=document.getElementById("shown"),registerTable=document.getElementById("registerTable");
+const quickLogBody=document.getElementById("quickLogBody"),quickSaveMessage=document.getElementById("quickSaveMessage"),todayKpis=document.getElementById("todayKpis"),todayTeamBars=document.getElementById("todayTeamBars"),todayThemeBars=document.getElementById("todayThemeBars"),logTable=document.getElementById("logTable"),addLogRowBtn=document.getElementById("addLogRowBtn"),fillTodayBtn=document.getElementById("fillTodayBtn"),saveLogRowsBtn=document.getElementById("saveLogRowsBtn");
+const fullMonth=document.getElementById("fullMonth"),fullFile=document.getElementById("fullFile"),fullStatus=document.getElementById("fullStatus"),teamUploadSlots=document.getElementById("teamUploadSlots"),dbSummary=document.getElementById("dbSummary"),structureCards=document.getElementById("structureCards");
+const drillModal=document.getElementById("drillModal"),drillTitle=document.getElementById("drillTitle"),drillMeta=document.getElementById("drillMeta"),drillClose=document.getElementById("drillClose"),drillSearch=document.getElementById("drillSearch"),drillExport=document.getElementById("drillExport"),drillSummary=document.getElementById("drillSummary"),drillCount=document.getElementById("drillCount"),drillTable=document.getElementById("drillTable");
+
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function teamForProcessor(p){p=String(p||"").trim().toUpperCase();const t=TEAM_CONFIG.find(x=>x.processors.includes(p));return t?t.name:"Unmapped";}
+function normalizeDist(v){let c=String(v||"").trim().toLowerCase().replace(/[–—]/g,"-").replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ");if(!c)return "";if(c==="term"||c==="termination")return "Termination";if(c==="term residual"||c==="term resisual")return "Term Residual";if(c==="termination partial"||c==="term partial")return "Termination - Partial";if(c==="hardship")return "Hardship";if(c==="loan"||c==="loan advance"||c==="loan withdrawal")return "Loan";if(c==="loan refinance")return "Loan Refinance";if(c==="rmd")return "RMD";if(c==="rmd cal"||c==="rmd calculation")return "RMD Calculation";if(c==="in service"||c==="inservice")return "In Service";if(c==="plan term"||c==="plan termination"||c==="pt")return "Plan Termination";if(c==="partial plan term"||c==="plan termination partial")return "Plan Termination - Partial";if(c==="plan term auto rollover"||c==="plan termination auto rollover")return "Plan Termination - Auto Rollover";if(c==="plan term fee out"||c==="plan termination fee out")return "Plan Termination - Fee Out";if(c==="plan term hce"||c==="plan termination hce")return "Plan Termination - HCE";if(c==="cash out fee")return "Cash Out - Fee";return String(v||"").trim().replace(/\s+/g," ")}
+function themeFor(s){const low=String(s||"").toLowerCase();const rules=[
+["Code / Age Code Error",["age code wrong","incorrect age code","wrong age code","age was code wrong","age code provided","used g as age code","age code"]],
+["Calculation / Amount",["cal","calculation","amount","balance","payment amount","first payment date","withdrawal amount","highest outstanding","loan limit"]],
+["Vesting",["vesting","vested","vest"]],
+["GIACT / Verification",["giact","routing number","federal reserve"]],
+["Source Selection / Fund Source",["source selection","source selecion","selects all source","selected all source","traditional source","sh source","fund held","where participant's fund"]],
+["Payment / Add Payee",["payee","payment","withholding","fed tax","state tax","wire","ach","financial institution","financial instatution","fbo","ffct","zip"]],
+["Participant / Personal Data",["address was wrong","address mismatch","address missmatch","name mismatch","name mismatched","last name mismatch","last name mismatched","city name missmatch","city name mismatch"]],
+["Unify / Relius / System",["unify","relius","project created in wrong plan","loan worksheet"]],
+["Plan / Rule Knowledge",["plan doc","plan document","plan spec","plan allows","qjsa","elapsed time","special condition","eligible","not eligible","provision","hce","deadline","loan specifications"]],
+["Documentation / Missing Items",["missing","incomplete","not furnished","blank","not complete","paperwork","signature","form","allocation report","email body","online request","section"]],
+["Notes / Follow-up",["did not check","didn't check","didnot check","did not cancel","did not reply","wrong case","note missing","note wrong","wrong alert note","did not inquire","doesn't inquire","did not confirm","not confirmed","skipped"]],
+["Fee / LOI Setup",["dist fee","distribution fee","fee in loi","loi fee"]]
+];for(const [k,terms] of rules)if(terms.some(t=>low.includes(t)))return k;return "Needs Review / Unclassified"}
+function fingerprint(r){return [r.report_month||r.month||"",r.error_date||r.date||"",r.project_id||"",r.processor||"",r.reviewer||"",normalizeDist(r.distribution_type||r.dist_type||""),String(r.details||"").trim()].join("|").toLowerCase()}
+function dbToRow(r){return {id:r.id,date:r.error_date||"",month:r.report_month||((r.error_date||"").slice(0,7))||"",project_id:r.project_id||"",dist_type:normalizeDist(r.distribution_type||""),processor:String(r.processor||"").toUpperCase(),reviewer:String(r.reviewer||"").toUpperCase(),team:r.team||teamForProcessor(r.processor),details:r.details||"",primary_theme:r.final_theme||r.auto_theme||themeFor(r.details),auto_theme:r.auto_theme||themeFor(r.details),final_theme:r.final_theme||"",source:r.source||"",source_file:r.source_file||"",created_at:r.created_at||"",updated_at:r.updated_at||""}}
+function allRows(){return dbRows.slice()}
+function counts(rows,key){const o={};rows.forEach(r=>{const k=typeof key==="function"?key(r):r[key];if(k)o[k]=(o[k]||0)+1});return o}
+function entries(o){return Object.entries(o).sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0])))}
+function topOf(o){return entries(o)[0]||["—",0]}
+function repeatGroups(rows){const g={};rows.forEach(r=>(g[r.project_id]??=[]).push(r));return Object.fromEntries(Object.entries(g).filter(([k,v])=>k&&v.length>1))}
+function filteredRows(){const team=teamFilter.value,month=monthFilter.value,proc=processorFilter.value,rev=reviewerFilter.value,dist=distFilter.value;return allRows().filter(r=>(!team||r.team===team)&&(!month||r.month===month)&&(!proc||r.processor===proc)&&(!rev||r.reviewer===rev)&&(!dist||r.dist_type===dist))}
+function rankingFilteredRows(){const team=teamFilter.value,month=monthFilter.value,rev=reviewerFilter.value,dist=distFilter.value;return allRows().filter(r=>(!team||r.team===team)&&(!month||r.month===month)&&(!rev||r.reviewer===rev)&&(!dist||r.dist_type===dist))}
+function fillSelect(id,vals,label){const el=document.getElementById(id),cur=el.value;el.innerHTML=`<option value="">${label}</option>`+[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");if([...el.options].some(o=>o.value===cur))el.value=cur}
+function refreshOptions(){const r=allRows();fillSelect("teamFilter",TEAM_CONFIG.map(t=>t.name).concat(r.some(x=>x.team==="Unmapped")?["Unmapped"]:[]),"All Teams");fillSelect("monthFilter",r.map(x=>x.month),"All Months");fillSelect("processorFilter",r.map(x=>x.processor),"All Processors");fillSelect("reviewerFilter",r.map(x=>x.reviewer),"All Reviewers");fillSelect("distFilter",r.map(x=>x.dist_type),"All Distribution Types")}
+function bars(obj,id,totalOverride){const el=document.getElementById(id);if(!el)return;const e=entries(obj),mx=Math.max(1,...e.map(x=>x[1])),den=totalOverride||e.reduce((a,b)=>a+b[1],0)||1;el.innerHTML=e.length?e.map(([k,v])=>`<div class="bar"><div class="barhead"><span>${esc(k)}</span><span>${v} <span class="note">(${(v/den*100).toFixed(1)}%)</span></span></div><div class="track"><div class="fill" style="width:${v/mx*100}%"></div></div></div>`).join(""):`<div class="empty">No data.</div>`}
+
+function setDbStatus(ok,text){dbConnected=ok;dbStatus.classList.toggle("ok",ok);dbStatusText.textContent=text||(ok?"Connected":"Disconnected");connectNotice.style.display=ok?"none":"block";topSub.textContent=ok?`${dbRows.length} shared database record(s) loaded`:"Shared database not connected yet.";if(dataCenterConnection)dataCenterConnection.textContent=ok?"Connected automatically":"Connection failed"}
+async function connectDatabase(showMessage=true){
+ try{
+  if(!window.supabase)throw new Error("Supabase library could not load. Check internet access.");
+  if(realtimeChannel&&db)await db.removeChannel(realtimeChannel);
+  db=window.supabase.createClient(AUTO_DB_URL,AUTO_DB_KEY,{auth:{persistSession:false}});
+  const {data,error}=await db.from("errors").select("*").eq("archived",false).neq("source","Baseline").order("created_at",{ascending:false});
+  if(error)throw error;
+  dbRows=(data||[]).map(dbToRow);
+  setDbStatus(true,"Connected • Auto Sync");
+  if(showMessage)dbMessage.textContent=`Connected automatically. ${dbRows.length} shared row(s) loaded.`;
+  subscribeRealtime();refreshOptions();render();return true;
+ }catch(e){
+  setDbStatus(false,"Connection Error");
+  dbMessage.textContent="Automatic connection failed: "+(e.message||e);
+  return false;
+ }
+}
+let refreshInProgress=false;
+async function refreshSharedData(silent=false){
+ if(!db){if(!silent)dbMessage.textContent="Database is not connected.";return}
+ if(refreshInProgress)return;
+ refreshInProgress=true;
+ try{
+  const {data,error}=await db.from("errors").select("*").eq("archived",false).neq("source","Baseline").order("created_at",{ascending:false});
+  if(error)throw error;
+  dbRows=(data||[]).map(dbToRow);
+  setDbStatus(true,"Connected • 3s Auto Sync");
+  refreshOptions();render();
+  if(!silent)dbMessage.textContent=`Refreshed ${dbRows.length} shared row(s).`;
+ }catch(e){
+  if(!silent)dbMessage.textContent="Refresh failed: "+e.message;
+ }finally{refreshInProgress=false}
+}
+
+function subscribeRealtime(){
+ if(!db)return;
+ realtimeChannel=db.channel("quality-iq-errors")
+  .on("postgres_changes",{event:"*",schema:"public",table:"errors"},()=>{
+    clearTimeout(window.__qirt);
+    window.__qirt=setTimeout(()=>refreshSharedData(true),250);
+  })
+  .subscribe(status=>{
+    if(status==="SUBSCRIBED")dbStatusText.textContent="Connected • Realtime + 3s Sync";
+  });
+}
+function requireDb(){
+ if(!dbConnected||!db){
+   alert("Shared database is not connected yet.");
+   return false;
+ }
+ return true;
+}
+
+function render(){
+ const rows=filteredRows(),
+       themes=counts(rows,"primary_theme"),
+       themeTotal=Object.values(themes).reduce((a,b)=>a+b,0),
+       repeats=repeatGroups(rows);
+
+ topSub.textContent=dbConnected
+   ?`${rows.length} selected shared records • ${new Set(rows.map(r=>r.project_id)).size} unique projects`
+   :"Shared database not connected yet.";
+
+ kpis.innerHTML=[
+   ["Error Records",rows.length,"selected shared rows"],
+   ["Unique Projects",new Set(rows.map(r=>r.project_id)).size,"project IDs"],
+   ["Teams",new Set(rows.map(r=>r.team)).size,"represented"],
+   ["Processors",new Set(rows.map(r=>r.processor)).size,"represented"],
+   ["Reviewers",new Set(rows.map(r=>r.reviewer)).size,"represented"],
+   ["Theme Check",themeTotal,"must equal error records"]
+ ].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">${x[2]}</div></div>`).join("");
+
+ bars(counts(rows,"team"),"teamBars",rows.length);
+ bars(themes,"themeBars",rows.length);
+ bars(counts(rows,"processor"),"processorBars",rows.length);
+ reconcile.textContent=`✓ Reconciled: ${themeTotal} theme assignments = ${rows.length} selected records`;
+
+ const tp=topOf(counts(rows,"processor")),
+       tt=topOf(themes),
+       td=topOf(counts(rows,"dist_type")),
+       un=rows.filter(r=>r.primary_theme==="Needs Review / Unclassified").length;
+
+ signals.innerHTML=
+   `<div class="insight"><b>Highest processor error volume</b>${esc(tp[0])} — ${tp[1]}</div>
+    <div class="insight"><b>Largest primary theme</b>${esc(tt[0])} — ${tt[1]}</div>
+    <div class="insight"><b>Most represented distribution</b>${esc(td[0])} — ${td[1]}</div>
+    <div class="insight"><b>Repeat-project signal</b>${Object.keys(repeats).length} repeated Project IDs</div>
+    <div class="insight"><b>Theme review queue</b>${un} unclassified record(s)</div>`;
+
+ renderRanking(rankingFilteredRows());
+ renderScorecard(rows);
+ renderPareto(rows);
+ renderCoaching(rows);
+ renderRepeatAlerts(rows);
+ renderThemeReview(rows);
+ renderTeams(rows);
+ renderProcessors(rows);
+ renderReviewers(rows);
+ renderDistribution(rows);
+ renderRepeats(rows);
+ renderRegister(rows);
+ renderLogSection();
+ renderDataCenter();
+}
+
+function ordinal(n){const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
+function rankingComment(position,count,total,theme){if(count===0)return "Excellent current control — no recorded errors in the selected data.";const p=position/Math.max(total,1);if(position===1)return `Leading current error-volume ranking. Keep reinforcing ${theme||"the current checking routine"}.`;if(p<=.34)return `Very strong position. Continue the same controls and stay attentive to ${theme||"the main recurring theme"}.`;if(p<=.67)return `Solid position. Focused refresh on ${theme||"the main recurring theme"} can move this result upward.`;if(position===total)return `Clear coaching opportunity. Prioritize ${theme||"the leading error theme"} and repeat-check controls.`;return `Good opportunity to strengthen consistency by concentrating on ${theme||"the leading error theme"}.`}
+function renderRanking(rows){const rep=[...new Set(rows.map(r=>r.team).filter(t=>TEAM_CONFIG.some(x=>x.name===t)))],configured=TEAM_CONFIG.filter(t=>rep.includes(t.name)).flatMap(t=>t.processors),pc=counts(rows,"processor");const ranked=configured.map(p=>{const rs=rows.filter(r=>r.processor===p),top=topOf(counts(rs,"primary_theme"));return{p,count:pc[p]||0,team:teamForProcessor(p),topTheme:top[0]==="—"?"":top[0]}}).sort((a,b)=>a.count-b.count||a.p.localeCompare(b.p));let last=null,place=0;ranked.forEach((x,i)=>{if(last===null||x.count!==last)place=i+1;x.place=place;last=x.count});rankingCoverage.innerHTML=rep.length?`Coverage: <b>${rep.map(esc).join(", ")}</b> • ${ranked.length} configured processors. Processor filter is ignored for fair comparison.`:"No represented team data.";
+ rankingPodium.innerHTML=ranked.slice(0,3).map((x,i)=>`<div class="rank-card ${i===0?"first":""}"><div class="rank-place">${ordinal(x.place)} place</div><div class="rank-name">${esc(x.p)}</div><div class="note">${esc(x.team)}</div><div class="rank-count">${x.count}</div><div class="note">recorded errors</div><div class="rank-comment">${esc(rankingComment(x.place,x.count,ranked.length,x.topTheme))}</div></div>`).join("")||`<div class="empty">No ranking data.</div>`;
+ rankingList.innerHTML=ranked.map(x=>`<div class="rank-row"><div class="rank-pos">${ordinal(x.place)}</div><div class="rank-proc">${esc(x.p)}</div><div><div class="note">${esc(x.team)}${x.topTheme?` • focus: ${esc(x.topTheme)}`:""}</div><div class="rank-comment">${esc(rankingComment(x.place,x.count,ranked.length,x.topTheme))}</div></div><div class="rank-errors">${x.count} error${x.count===1?"":"s"}</div></div>`).join("");
+ const teams=rep.map(t=>({team:t,count:rows.filter(r=>r.team===t).length})).sort((a,b)=>a.count-b.count);teamRankingList.innerHTML=teams.map((x,i)=>`<div class="rank-row"><div class="rank-pos">${ordinal(i+1)}</div><div class="rank-proc" style="font-size:13px">${esc(x.team.replace("Team ",""))}</div><div class="rank-comment">${i===0?"Strong current team-level error-volume position.":"Focus coaching on the leading themes to move upward."}</div><div class="rank-errors">${x.count} errors</div></div>`).join("")||`<div class="empty">No data.</div>`}
+function renderScorecard(rows){teamScorecards.innerHTML=TEAM_CONFIG.map(t=>{const rs=rows.filter(r=>r.team===t.name),th=topOf(counts(rs,"primary_theme")),di=topOf(counts(rs,"dist_type"));return`<div class="teamcard"><div class="teamname">${esc(t.name)}</div><div class="lead">Lead: ${t.lead}</div><div class="insight"><b>Error records</b>${rs.length}</div><div class="insight"><b>Top theme</b>${esc(th[0])} (${th[1]})</div><div class="insight"><b>Top distribution</b>${esc(di[0])} (${di[1]})</div></div>`}).join("");processorScorecards.innerHTML=entries(counts(rows,"processor")).map(([p,n],i)=>{const top=topOf(counts(rows.filter(r=>r.processor===p),"primary_theme"));return`<div class="focus"><div class="name">${i+1}. ${esc(p)} <span class="badge">${esc(teamForProcessor(p))}</span></div><div class="note">${n} errors • top theme: ${esc(top[0])} (${top[1]})</div></div>`}).join("")}
+function renderPareto(rows){const e=entries(counts(rows,"primary_theme")),total=rows.length||1;let cum=0;paretoTable.innerHTML=e.length?`<div class="tablewrap"><table><thead><tr><th>#</th><th>Primary Theme</th><th>Errors</th><th>Share</th><th>Cumulative</th></tr></thead><tbody>${e.map(([k,v],i)=>{cum+=v;return`<tr><td>${i+1}</td><td><b>${esc(k)}</b></td><td>${v}</td><td>${(v/total*100).toFixed(1)}%</td><td><b>${(cum/total*100).toFixed(1)}%</b></td></tr>`}).join("")}</tbody></table></div>`:`<div class="empty">No data.</div>`}
+function focusBlock(name,rs){return`<div class="focus"><div class="name">${esc(name)}</div>${entries(counts(rs,"primary_theme")).slice(0,3).map((x,i)=>`<div class="note" style="margin-top:6px"><span class="badge">${i+1}</span>${esc(x[0])} — <b>${x[1]}</b></div>`).join("")||'<div class="note">No errors.</div>'}</div>`}
+function renderCoaching(rows){teamCoaching.innerHTML=TEAM_CONFIG.map(t=>focusBlock(t.name,rows.filter(r=>r.team===t.name))).join("");processorCoaching.innerHTML=entries(counts(rows,"processor")).map(([p])=>focusBlock(`${p} • ${teamForProcessor(p)}`,rows.filter(r=>r.processor===p))).join("")}
+function recurringPatterns(rows){const m={};rows.forEach(r=>(m[r.processor+"|||"+r.primary_theme]??=[]).push(r));return Object.entries(m).filter(([k,v])=>v.length>=2).map(([k,v])=>{const[a,b]=k.split("|||");return{processor:a,theme:b,count:v.length,projects:[...new Set(v.map(r=>r.project_id))]}}).sort((a,b)=>b.count-a.count)}
+function renderRepeatAlerts(rows){const p=recurringPatterns(rows);repeatAlertSummary.innerHTML=[["Recurring Patterns",p.length],["Processors Affected",new Set(p.map(x=>x.processor)).size],["Top Repeat Count",p[0]?.count||0]].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">same processor + same theme</div></div>`).join("");repeatAlerts.innerHTML=p.map((x,i)=>`<div class="alert-card"><b>${i+1}. ${esc(x.processor)} • ${esc(x.theme)}</b><div class="note">${esc(teamForProcessor(x.processor))} • ${x.count} records • Projects: ${x.projects.map(esc).join(", ")}</div><button class="btn" style="margin-top:8px" data-drill-kind="processor-theme" data-processor="${esc(x.processor)}" data-theme="${esc(x.theme)}">View records</button></div>`).join("")||`<div class="empty">No recurring pattern.</div>`}
+function themeOptions(current,auto=true){return(auto?`<option value="AUTO">Use Auto Theme</option>`:"")+PRIMARY_THEMES.filter(x=>x!=="Needs Review / Unclassified").map(t=>`<option value="${esc(t)}" ${t===current?"selected":""}>${esc(t)}</option>`).join("")}
+function reviewCard(r,idx){return`<div class="review-item" data-review-index="${idx}"><div><b>Project ${esc(r.project_id)}</b> <span class="badge">${esc(r.processor)}</span> <span class="badge">${esc(r.primary_theme)}</span></div><div class="note" style="margin-top:6px">${esc(r.details)}</div><div class="note">Auto: ${esc(r.auto_theme)} • Reviewer: ${esc(r.reviewer)}</div><div style="margin-top:8px"><select class="select review-theme">${themeOptions(r.final_theme||r.primary_theme,true)}</select> <button class="btn primary review-save">Save Theme</button></div></div>`}
+function renderThemeReview(rows){themeReviewRows=rows;const q=rows.filter(r=>r.primary_theme==="Needs Review / Unclassified");reviewQueue.innerHTML=q.map(r=>reviewCard(r,rows.indexOf(r))).join("")||`<div class="callout">✓ No unclassified records.</div>`;renderOverrideSearch()}
+function renderOverrideSearch(){const q=(overrideSearch.value||"").toLowerCase().trim();let rs=themeReviewRows.filter(r=>!q||(r.project_id+" "+r.processor+" "+r.reviewer+" "+r.details+" "+r.primary_theme).toLowerCase().includes(q));overrideResults.innerHTML=rs.slice(0,30).map(r=>reviewCard(r,themeReviewRows.indexOf(r))).join("")||`<div class="empty">No matching records.</div>`}
+async function saveReviewCard(card){if(!requireDb())return;const r=themeReviewRows[Number(card.dataset.reviewIndex)];if(!r)return;const v=card.querySelector(".review-theme").value,finalTheme=v==="AUTO"?null:v;const {error}=await db.from("errors").update({final_theme:finalTheme,updated_by:r.reviewer||""}).eq("id",r.id);if(error)alert("Theme update failed: "+error.message);else await refreshSharedData(true)}
+
+function renderTeams(rows){teamProfiles.innerHTML=TEAM_CONFIG.map(t=>`<div class="teamcard"><div class="teamname">${esc(t.name)}</div><div class="lead">Lead: ${t.lead}</div><div>${t.processors.map(p=>`<span class="badge">${p}</span>`).join("")}</div><div class="insight"><b>Selected errors</b>${rows.filter(r=>r.team===t.name).length}</div></div>`).join("");const themes=[...new Set(rows.map(r=>r.primary_theme))].sort();let h=`<thead><tr><th>Team</th>${themes.map(t=>`<th>${esc(t)}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;TEAM_CONFIG.forEach(t=>{const rs=rows.filter(r=>r.team===t.name);h+=`<tr><td><b>${esc(t.name)}</b></td>`;let total=0;themes.forEach(th=>{const n=rs.filter(r=>r.primary_theme===th).length;total+=n;h+=`<td><button class="drill-btn" ${n?`data-drill-kind="team-theme" data-team="${esc(t.name)}" data-theme="${esc(th)}"`:"disabled"}><span class="heat" style="background:rgba(79,99,216,${n?Math.min(.38,.07+n*.035):.03})">${n||"—"}</span></button></td>`});h+=`<td><button class="drill-btn" ${total?`data-drill-kind="team-all" data-team="${esc(t.name)}"`:"disabled"}><b>${total}</b></button></td></tr>`});teamMatrix.innerHTML=h+"</tbody>"}
+function renderProcessors(rows){const e=entries(counts(rows,"processor")),mx=Math.max(1,...e.map(x=>x[1]));processorDetail.innerHTML=e.map(([p,n],i)=>{const top=entries(counts(rows.filter(r=>r.processor===p),"primary_theme")).slice(0,3);return`<div class="focus"><div class="name">${i+1}. ${esc(p)} <span class="badge">${esc(teamForProcessor(p))}</span></div><div class="note">${n} errors</div><div class="track"><div class="fill" style="width:${n/mx*100}%"></div></div><div>${top.map(x=>`<span class="badge">${esc(x[0])}: ${x[1]}</span>`).join("")}</div></div>`}).join("");const themes=[...new Set(rows.map(r=>r.primary_theme))].sort();let h=`<thead><tr><th>Processor</th>${themes.map(t=>`<th>${esc(t)}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;e.forEach(([p])=>{const rs=rows.filter(r=>r.processor===p);h+=`<tr><td><b>${esc(p)}</b><div class="note">${esc(teamForProcessor(p))}</div></td>`;let total=0;themes.forEach(th=>{const n=rs.filter(r=>r.primary_theme===th).length;total+=n;h+=`<td><button class="drill-btn" ${n?`data-drill-kind="processor-theme" data-processor="${esc(p)}" data-theme="${esc(th)}"`:"disabled"}><span class="heat" style="background:rgba(124,77,255,${n?Math.min(.38,.07+n*.035):.03})">${n||"—"}</span></button></td>`});h+=`<td><button class="drill-btn" ${total?`data-drill-kind="processor-all" data-processor="${esc(p)}"`:"disabled"}><b>${total}</b></button></td></tr>`});processorMatrix.innerHTML=h+"</tbody>"}
+function renderReviewers(rows){bars(counts(rows,"reviewer"),"reviewerBars",rows.length)}
+function renderDistribution(rows){const c=counts(rows,"dist_type");bars(c,"distBars",rows.length);distSignals.innerHTML=entries(c).slice(0,5).map(([d,n],i)=>`<div class="insight"><b>${i+1}. ${esc(d)}</b>${n} errors • ${(n/(rows.length||1)*100).toFixed(1)}%</div>`).join("")}
+function renderRepeats(rows){const g=repeatGroups(rows);repeatKpis.innerHTML=[["Repeated IDs",Object.keys(g).length],["Rows on repeated IDs",Object.values(g).flat().length],["Single-row projects",new Set(rows.map(r=>r.project_id)).size-Object.keys(g).length]].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">current selection</div></div>`).join("");repeatList.innerHTML=Object.entries(g).map(([pid,rs])=>`<div class="insight"><b>Project ${esc(pid)} — ${rs.length} records</b>${rs.map(r=>`<div style="margin-top:5px"><span class="badge">${esc(r.processor)}</span><span class="badge">${esc(r.primary_theme)}</span>${esc(r.details)}</div>`).join("")}</div>`).join("")||`<div class="empty">No repeated Project IDs.</div>`}
+function renderRegister(rows){const q=(search.value||"").toLowerCase().trim(),rs=rows.filter(r=>!q||(r.project_id+" "+r.details+" "+r.dist_type+" "+r.processor+" "+r.reviewer+" "+r.team).toLowerCase().includes(q));shown.textContent=`Showing ${rs.length} of ${rows.length}`;registerTable.innerHTML=`<thead><tr><th>Project</th><th>Date/Month</th><th>Team</th><th>Distribution</th><th>Processor</th><th>Reviewer</th><th>Theme</th><th>Error Detail</th><th>Source</th></tr></thead><tbody>${rs.map(r=>`<tr><td><b>${esc(r.project_id)}</b></td><td>${esc(r.date||r.month)}</td><td>${esc(r.team)}</td><td>${esc(r.dist_type)}</td><td>${esc(r.processor)}</td><td>${esc(r.reviewer)}</td><td><span class="badge">${esc(r.primary_theme)}</span></td><td>${esc(r.details)}</td><td>${esc(r.source)}</td></tr>`).join("")}</tbody>`}
+
+function todayLocal(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function displayDate(iso){const m=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1]}`:iso||""}
+function parseEntryDate(v){const s=String(v||"").trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(y,mo-1,d);if(dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d)return`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`}m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);if(m){const d=+m[1],mo=+m[2],y=+m[3],dt=new Date(y,mo-1,d);if(dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d)return`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`}return null}
+function quickRowHTML(v={}){const ps=TEAM_CONFIG.flatMap(t=>t.processors);return`<tr class="quick-entry-row" data-db-id="${esc(v.id||"")}"><td><input class="q-date" value="${esc(v.date?displayDate(v.date):displayDate(todayLocal()))}" placeholder="DD/MM/YYYY"></td><td><input class="q-project" value="${esc(v.project_id||"")}"></td><td><select class="q-dist"><option value="">Select…</option>${DIST_TYPES.map(x=>`<option value="${esc(x)}" ${normalizeDist(v.dist_type)===x?"selected":""}>${esc(x)}</option>`).join("")}</select></td><td><select class="q-proc"><option value="">Select…</option>${ps.map(p=>`<option value="${p}" ${v.processor===p?"selected":""}>${p}</option>`).join("")}</select></td><td><input class="q-team team-auto" value="${esc(v.processor?teamForProcessor(v.processor):"")}" readonly></td><td><input class="q-reviewer" value="${esc(v.reviewer||"")}" placeholder="LF / FA / FL / SS"></td><td><select class="q-theme"><option value="AUTO">Auto Theme</option>${PRIMARY_THEMES.filter(x=>x!=="Needs Review / Unclassified").map(t=>`<option value="${esc(t)}" ${v.final_theme===t?"selected":""}>${esc(t)}</option>`).join("")}</select></td><td><input class="q-details" value="${esc(v.details||"")}" placeholder="What was wrong?"></td><td><button class="row-remove" type="button">✕</button></td></tr>`}
+function addQuickRows(n=1,v=null){if(v){quickLogBody.insertAdjacentHTML("beforeend",quickRowHTML(v));return}for(let i=0;i<n;i++)quickLogBody.insertAdjacentHTML("beforeend",quickRowHTML())}
+function ensureQuickRows(){if(!quickLogBody.children.length)addQuickRows(5)}
+function rowValues(row){return{id:row.dataset.dbId||"",dateText:row.querySelector(".q-date").value.trim(),project_id:row.querySelector(".q-project").value.trim(),dist_type:normalizeDist(row.querySelector(".q-dist").value),processor:row.querySelector(".q-proc").value.trim().toUpperCase(),reviewer:row.querySelector(".q-reviewer").value.trim().toUpperCase(),final_theme:row.querySelector(".q-theme").value==="AUTO"?"":row.querySelector(".q-theme").value,details:row.querySelector(".q-details").value.trim()}}
+function rowIsBlank(v){return!v.project_id&&!v.dist_type&&!v.processor&&!v.reviewer&&!v.details}
+async function saveQuickRows(){if(!requireDb())return;const rows=[...quickLogBody.querySelectorAll("tr")],prepared=[],errs=[];rows.forEach((row,i)=>{row.classList.remove("row-error");const v=rowValues(row);if(rowIsBlank(v))return;const iso=parseEntryDate(v.dateText),missing=[];if(!iso)missing.push("date");if(!v.project_id)missing.push("Project ID");if(!v.dist_type)missing.push("Distribution");if(!v.processor)missing.push("Processor");if(!v.reviewer)missing.push("Reviewer");if(!v.details)missing.push("Details");if(missing.length){row.classList.add("row-error");errs.push(`Row ${i+1}: ${missing.join(", ")}`);return}const auto=themeFor(v.details),payload={error_date:iso,report_month:iso.slice(0,7),project_id:v.project_id,distribution_type:v.dist_type,processor:v.processor,reviewer:v.reviewer,team:teamForProcessor(v.processor),details:v.details,auto_theme:auto,final_theme:v.final_theme||null,source:"Log Entry",created_by:v.reviewer,updated_by:v.reviewer};payload.fingerprint=fingerprint(payload);prepared.push({id:v.id,payload})});if(errs.length){quickSaveMessage.textContent="Fix: "+errs.join(" • ");return}if(!prepared.length){quickSaveMessage.textContent="Enter at least one row.";return}
+ try{for(const x of prepared){if(x.id){const {error}=await db.from("errors").update(x.payload).eq("id",x.id);if(error)throw error}else{const {error}=await db.from("errors").upsert(x.payload,{onConflict:"fingerprint",ignoreDuplicates:true});if(error)throw error}}quickSaveMessage.textContent=`Saved ${prepared.length} row(s) to shared database.`;quickLogBody.innerHTML="";addQuickRows(5);await refreshSharedData(true)}catch(e){quickSaveMessage.textContent="Save failed: "+e.message}}
+function renderLogSection(){ensureQuickRows();const logs=allRows().filter(r=>r.source==="Log Entry").sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.created_at).localeCompare(String(a.created_at))),today=todayLocal(),trs=logs.filter(r=>r.date===today);todayKpis.innerHTML=[["Today's Errors",trs.length],["Projects",new Set(trs.map(r=>r.project_id)).size],["Processors",new Set(trs.map(r=>r.processor)).size],["Teams",new Set(trs.map(r=>r.team)).size]].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">shared database</div></div>`).join("");bars(counts(trs,"team"),"todayTeamBars",trs.length);bars(counts(trs,"primary_theme"),"todayThemeBars",trs.length);logTable.innerHTML=`<thead><tr><th>Date</th><th>Project</th><th>Team</th><th>Distribution</th><th>Processor</th><th>Reviewer</th><th>Theme</th><th>Details</th><th>Action</th></tr></thead><tbody>${logs.slice(0,300).map(r=>`<tr><td>${esc(displayDate(r.date))}</td><td><b>${esc(r.project_id)}</b></td><td>${esc(r.team)}</td><td>${esc(r.dist_type)}</td><td>${esc(r.processor)}</td><td>${esc(r.reviewer)}</td><td><span class="badge">${esc(r.primary_theme)}</span></td><td>${esc(r.details)}</td><td><button class="btn" onclick="editLog('${r.id}')">Edit</button> <button class="btn danger" onclick="archiveRow('${r.id}')">Archive</button></td></tr>`).join("")}</tbody>`}
+function editLog(id){const r=allRows().find(x=>x.id===id);if(!r)return;quickLogBody.innerHTML="";addQuickRows(1,r);addQuickRows(2);quickSaveMessage.textContent=`Editing Project ${r.project_id}. Save All Rows to update the shared record.`;document.querySelector('[data-page="log"]').click()}
+async function archiveRow(id){if(!requireDb())return;if(!confirm("Archive this shared record? It will disappear from dashboards but stay in database."))return;const {error}=await db.from("errors").update({archived:true}).eq("id",id);if(error)alert(error.message);else await refreshSharedData(true)}
+
+function canonicalHeader(h){return String(h||"").toLowerCase().replace(/[^a-z0-9]/g,"")}
+function mapRow(obj,forcedTeam,month,sourceFile){const m={};Object.keys(obj).forEach(k=>m[canonicalHeader(k)]=obj[k]);const pick=keys=>{for(const k of keys)if(m[k]!==undefined&&m[k]!==null&&String(m[k]).trim()!=="")return m[k];return""};const project=pick(["projectid","project","id"]),dist=pick(["disttype","distributiontype","distribution","dist"]),proc=pick(["processorinitial","processor","processorinitials"]),rev=pick(["reviewerinitial","reviewer","reviewerinitials"]),details=pick(["details","detail","errordetails","error","comments","comment","description"]);if(!project&&!proc&&!details)return null;const p=String(proc||"").trim().toUpperCase(),team=forcedTeam==="FULL"?teamForProcessor(p):forcedTeam,auto=themeFor(details);const payload={error_date:null,report_month:month,project_id:String(project).trim(),distribution_type:normalizeDist(dist),processor:p,reviewer:String(rev||"").trim().toUpperCase(),team,details:String(details||"").trim(),auto_theme:auto,final_theme:null,source:forcedTeam==="FULL"?"Full Team Upload":"Team Upload",source_file:sourceFile,created_by:String(rev||"").trim().toUpperCase(),updated_by:String(rev||"").trim().toUpperCase()};payload.fingerprint=fingerprint(payload);return payload}
+function parseCSV(text){const rows=[];let row=[],cell="",q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c=='"'){if(q&&n=='"'){cell+='"';i++}else q=!q}else if(c==","&&!q){row.push(cell);cell=""}else if((c=="\n"||c=="\r")&&!q){if(c=="\r"&&n=="\n")i++;row.push(cell);rows.push(row);row=[];cell=""}else cell+=c}if(cell||row.length){row.push(cell);rows.push(row)}const headers=(rows.shift()||[]).map(x=>x.trim());return rows.filter(r=>r.some(x=>String(x).trim())).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])))}
+async function readTabular(file){if(file.name.toLowerCase().endsWith(".csv"))return parseCSV(await file.text());if(typeof XLSX==="undefined")throw new Error("Excel parser failed to load. Save as CSV or check internet.");const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:"array"}),ws=wb.Sheets[wb.SheetNames[0]];return XLSX.utils.sheet_to_json(ws,{defval:""})}
+async function uploadDataset(mode,idx){if(!requireDb())return;const full=mode==="FULL",month=document.getElementById(full?"fullMonth":"m"+idx).value,input=document.getElementById(full?"fullFile":"f"+idx),status=document.getElementById(full?"fullStatus":"s"+idx),file=input.files[0];if(!month){status.textContent="Select reporting month.";return}if(!file){status.textContent="Choose file.";return}try{status.textContent="Parsing…";const raw=await readTabular(file),parsed=raw.map(x=>mapRow(x,mode,month,file.name)).filter(Boolean);if(!parsed.length)throw new Error("No usable rows.");const unmapped=parsed.filter(r=>r.team==="Unmapped").length;for(let i=0;i<parsed.length;i+=250){const chunk=parsed.slice(i,i+250);const{error}=await db.from("errors").upsert(chunk,{onConflict:"fingerprint",ignoreDuplicates:true});if(error)throw error}status.textContent=`Uploaded ${parsed.length} parsed rows to shared database${unmapped?` • ${unmapped} unmapped`:""}. Duplicate fingerprints ignored.`;await refreshSharedData(true)}catch(e){status.textContent="Upload failed: "+e.message}}
+function renderDataCenter(){structureCards.innerHTML=TEAM_CONFIG.map(t=>`<div class="teamcard"><div class="teamname">${esc(t.name)}</div><div class="lead">Lead: ${t.lead}</div><div>${t.processors.map(p=>`<span class="badge">${p}</span>`).join("")}</div></div>`).join("");if(!teamUploadSlots.children.length)teamUploadSlots.innerHTML=TEAM_CONFIG.map((t,i)=>`<div class="upload"><h3>${esc(t.name)}</h3><div class="note">Lead ${t.lead} • ${t.processors.join(", ")}</div><input id="m${i}" type="month"><input id="f${i}" type="file" accept=".xlsx,.xls,.csv"><button class="btn primary" onclick="uploadDataset('${esc(t.name)}',${i})">Upload to Shared DB</button><div id="s${i}" class="note"></div></div>`).join("");const rows=allRows();dbSummary.innerHTML=dbConnected?`<div class="grid three"><div class="insight"><b>Active shared rows</b>${rows.length}</div><div class="insight"><b>Log Entry rows</b>${rows.filter(r=>r.source==="Log Entry").length}</div><div class="insight"><b>Uploaded rows</b>${rows.filter(r=>r.source.includes("Upload")).length}</div></div>`:`<div class="empty">Connect database to view shared summary.</div>`}
+
+function openDrill(kind,o){const base=filteredRows();let rs=base,title="Drill-down";if(kind==="team-theme"){rs=base.filter(r=>r.team===o.team&&r.primary_theme===o.theme);title=`${o.team} × ${o.theme}`}else if(kind==="team-all"){rs=base.filter(r=>r.team===o.team);title=`${o.team} — All Errors`}else if(kind==="processor-theme"){rs=base.filter(r=>r.processor===o.processor&&r.primary_theme===o.theme);title=`${o.processor} × ${o.theme}`}else if(kind==="processor-all"){rs=base.filter(r=>r.processor===o.processor);title=`${o.processor} — All Errors`}drillRows=rs;drillTitle.textContent=title;drillMeta.textContent="Underlying shared database records";drillSearch.value="";renderDrill();drillModal.classList.add("show")}
+function renderDrill(){const q=(drillSearch.value||"").toLowerCase(),rs=drillRows.filter(r=>!q||(r.project_id+" "+r.processor+" "+r.reviewer+" "+r.details).toLowerCase().includes(q));drillSummary.innerHTML=[["Error Records",rs.length],["Unique Projects",new Set(rs.map(r=>r.project_id)).size],["Processors",new Set(rs.map(r=>r.processor)).size],["Reviewers",new Set(rs.map(r=>r.reviewer)).size]].map(x=>`<div class="drill-stat"><b>${x[1]}</b><span class="note">${x[0]}</span></div>`).join("");drillCount.textContent=`Showing ${rs.length} of ${drillRows.length}`;drillTable.innerHTML=`<thead><tr><th>Project</th><th>Processor</th><th>Reviewer</th><th>Distribution</th><th>Date/Month</th><th>Error Detail</th></tr></thead><tbody>${rs.map(r=>`<tr><td><b>${esc(r.project_id)}</b></td><td>${esc(r.processor)}</td><td>${esc(r.reviewer)}</td><td>${esc(r.dist_type)}</td><td>${esc(r.date||r.month)}</td><td>${esc(r.details)}</td></tr>`).join("")}</tbody>`}
+function exportRowsCSV(rows,name){const h=["Project ID","Date","Month","Team","Distribution Type","Processor","Reviewer","Primary Theme","Details","Source"],lines=[h,...rows.map(r=>[r.project_id,r.date,r.month,r.team,r.dist_type,r.processor,r.reviewer,r.primary_theme,r.details,r.source])].map(a=>a.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines],{type:"text/csv;charset=utf-8"}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function exportCSV(){exportRowsCSV(filteredRows(),"quality_intelligence_shared_filtered.csv")}
+function resetFilters(){[teamFilter,monthFilter,processorFilter,reviewerFilter,distFilter].forEach(x=>x.value="");search.value="";render()}
+
+document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.page).classList.add("active");pageTitle.textContent=b.textContent.replace(/^[^A-Za-z]+/,"").trim();window.scrollTo({top:0,behavior:"smooth"})}));
+[teamFilter,monthFilter,processorFilter,reviewerFilter,distFilter].forEach(x=>x.addEventListener("change",render));search.addEventListener("input",()=>renderRegister(filteredRows()));overrideSearch.addEventListener("input",renderOverrideSearch);
+themeReview.addEventListener("click",e=>{const b=e.target.closest(".review-save");if(b)saveReviewCard(b.closest(".review-item"))});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-drill-kind]");if(b)openDrill(b.dataset.drillKind,{team:b.dataset.team||"",processor:b.dataset.processor||"",theme:b.dataset.theme||""})});
+drillClose.addEventListener("click",()=>drillModal.classList.remove("show"));drillModal.addEventListener("click",e=>{if(e.target===drillModal)drillModal.classList.remove("show")});drillSearch.addEventListener("input",renderDrill);drillExport.addEventListener("click",()=>exportRowsCSV(drillRows,"matrix_drilldown.csv"));
+addLogRowBtn.addEventListener("click",()=>addQuickRows(1));fillTodayBtn.addEventListener("click",()=>quickLogBody.querySelectorAll(".q-date").forEach(x=>x.value=displayDate(todayLocal())));saveLogRowsBtn.addEventListener("click",saveQuickRows);quickLogBody.addEventListener("change",e=>{if(e.target.classList.contains("q-proc")){const row=e.target.closest("tr");row.querySelector(".q-team").value=teamForProcessor(e.target.value)}});quickLogBody.addEventListener("click",e=>{const b=e.target.closest(".row-remove");if(b)b.closest("tr").remove()});
+refreshDbBtn.addEventListener("click",()=>refreshSharedData(false));
+ensureQuickRows();refreshOptions();render();
+connectDatabase(false).then(ok=>{
+ if(ok){
+  window.__qualityAutoRefresh=setInterval(()=>{if(document.visibilityState==="visible")refreshSharedData(true)},AUTO_REFRESH_MS);
+ }
+});
+</script>
+</body></html>
