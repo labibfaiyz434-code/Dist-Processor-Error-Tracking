@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quality IQ — Live</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#172033;--muted:#667085;--line:#e4e8ef;--nav:#0f172a;--accent:#4f63d8;--accent2:#7c4dff;--good:#127a52;--warn:#9a6300;--danger:#b42318;--shadow:0 10px 28px rgba(15,23,42,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:242px;background:linear-gradient(180deg,var(--nav),#0b1220);padding:18px 13px;color:#cbd5e1;overflow:auto;z-index:20}
+.brand{color:#fff;font-weight:900;font-size:18px;padding:10px 11px 19px}.brand small{display:block;color:#8391a7;font-size:9px;letter-spacing:.14em;margin-top:5px}
+.navbtn{display:block;width:100%;border:0;background:transparent;color:#aeb8c8;text-align:left;padding:11px 12px;border-radius:9px;margin:2px 0;font-weight:750}.navbtn:hover,.navbtn.active{background:#253149;color:#fff}
+.main{margin-left:242px;min-height:100vh}.top{min-height:74px;background:#fff;border-bottom:1px solid var(--line);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;position:sticky;top:0;z-index:10}
+.title{font-size:21px;font-weight:900}.sub{font-size:11px;color:var(--muted);margin-top:3px}.topactions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:850;padding:6px 9px;border-radius:99px;background:#fff1f0;color:#a61b1b;border:1px solid #ffd0cc}.status.ok{background:#eefbf4;color:#17623f;border-color:#bfe7d1}.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.btn{border:1px solid #d4d9e3;background:#fff;border-radius:8px;padding:9px 11px;color:#344054;font-weight:750}.btn:hover{background:#f6f7fa}.btn.primary{background:#293c86;color:#fff;border-color:#293c86}.btn.danger{color:#a61b1b;border-color:#f2b8b5}.btn.good{color:#17623f;border-color:#bfe7d1;background:#f4fbf7}
+.content{max-width:1500px;margin:auto;padding:25px 26px 50px}.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(6,1fr)}.two{grid-template-columns:repeat(2,1fr)}.three{grid-template-columns:repeat(3,1fr)}.four{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:var(--shadow)}.card h2{font-size:15px;margin:0 0 3px}.card h3{font-size:13px;margin:0 0 8px}
+.desc,.note{font-size:11px;color:var(--muted);line-height:1.5}.kpi{min-height:105px;position:relative;overflow:hidden}.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent),var(--accent2))}
+.kpi .lab{font-size:10px;font-weight:850;letter-spacing:.06em;text-transform:uppercase;color:#7d8798}.kpi .val{font-size:28px;font-weight:900;margin-top:8px;letter-spacing:-.04em}.kpi .hint{font-size:10px;color:var(--muted);margin-top:5px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.input,.select{border:1px solid #d4d9e3;background:#fff;border-radius:8px;padding:9px 10px;min-width:145px}.input{min-width:230px}
+.bar{margin:12px 0}.barhead{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:800;margin-bottom:5px}.track{height:10px;background:#edf0f5;border-radius:99px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.insight{padding:12px 13px;border:1px solid var(--line);border-radius:9px;background:#fbfcff;margin:8px 0;line-height:1.55;font-size:11px}.insight b{display:block;margin-bottom:3px}
+.badge{display:inline-block;padding:4px 7px;border-radius:99px;background:#eef2ff;color:#3549a1;font-size:10px;font-weight:850;margin:2px}.callout{padding:11px 13px;background:#eefbf4;border:1px solid #bfe7d1;color:#17623f;border-radius:8px;font-size:11px;font-weight:750}.warn{background:#fff7e8;border-color:#f5d39e;color:#855a08}
+.teamcard{border:1px solid var(--line);border-radius:11px;padding:13px;background:#fbfcff}.teamname{font-size:15px;font-weight:900}.lead{font-size:10px;color:var(--muted)}
+.tablewrap{overflow:auto;max-height:640px;border:1px solid var(--line);border-radius:9px}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:10px 11px;border-bottom:1px solid var(--line);font-size:11px;vertical-align:top;text-align:left}th{background:#f7f8fb;position:sticky;top:0;z-index:2}tbody tr:hover td{background:#fafbff}
+.matrix{min-width:1100px}.matrix th,.matrix td{text-align:center}.matrix th:first-child,.matrix td:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:3}.heat{display:block;padding:5px;border-radius:5px;font-weight:850}
+.drill-btn{width:100%;min-width:34px;border:0;background:transparent;padding:0;border-radius:6px;color:inherit}.drill-btn[disabled]{cursor:default;opacity:.5}.drill-btn:hover .heat{box-shadow:inset 0 0 0 1px rgba(79,99,216,.35)}
+.upload{border:1px solid var(--line);border-radius:11px;padding:14px;background:#fbfcff}.upload input,.upload select{width:100%;margin:6px 0 10px;padding:9px;border:1px solid #d6dae3;border-radius:8px;background:#fff}
+.empty{text-align:center;padding:30px;color:var(--muted);font-size:11px}.focus,.alert-card,.review-item{border:1px solid var(--line);border-radius:10px;padding:13px;margin:8px 0;background:#fbfcff}.focus .name{font-size:14px;font-weight:900}
+.rank-card{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfcff}.rank-card.first{border-color:#e6c55f;background:#fffdf4}.rank-place{font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase}.rank-name{font-size:20px;font-weight:950;margin-top:5px}.rank-count{font-size:27px;font-weight:950;margin-top:8px}.rank-comment{font-size:11px;line-height:1.55;color:#536072;margin-top:9px}
+.rank-row{display:grid;grid-template-columns:82px 90px 1fr 120px;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding:12px 4px}.rank-pos,.rank-proc{font-weight:950}.rank-errors{text-align:right;font-weight:900}
+.quick-grid-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}.quick-grid{width:100%;min-width:1320px;border-collapse:collapse}.quick-grid td{padding:5px}.quick-grid input,.quick-grid select{width:100%;border:1px solid transparent;background:transparent;border-radius:6px;padding:8px 7px;font-size:12px}.quick-grid input:focus,.quick-grid select:focus{outline:none;border-color:#8797ee;background:#f8f9ff}.team-auto{background:#f7f8fb!important;color:#667085}.row-remove{border:0;background:transparent;color:#a61b1b;font-weight:900;padding:7px}.row-error td{background:#fff5f4}.row-saved td{background:#effaf4}
+.register-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.register-select{width:16px;height:16px;cursor:pointer}
+.delete-count{font-size:11px;font-weight:850;color:#667085}
+.danger-zone{border-color:#f1b8b5;background:#fffafa}
+.danger-zone h2{color:#9b1c1c}
+
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setup-grid input{width:100%;margin-top:6px}.codebox{white-space:pre-wrap;word-break:break-word;font:11px Consolas,monospace;background:#0f172a;color:#dbeafe;padding:13px;border-radius:9px;max-height:240px;overflow:auto}
+.drill-modal{position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:38px 18px;overflow:auto}.drill-modal.show{display:flex}.drill-box{width:min(1100px,100%);background:#fff;border-radius:15px;overflow:hidden}.drill-head{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}.drill-body{padding:0 18px 18px}.drill-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 0}.drill-stat{border:1px solid var(--line);border-radius:9px;padding:10px;background:#fbfcff}.drill-stat b{font-size:18px;display:block}
+@media(max-width:1150px){.sidebar{width:195px}.main{margin-left:195px}.kpis{grid-template-columns:repeat(3,1fr)}.two,.three,.four{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.sidebar{position:static;width:100%;display:flex;overflow:auto;padding:7px}.brand{display:none}.navbtn{white-space:nowrap;width:auto}.main{margin-left:0}.top{padding:10px 12px}.content{padding:15px 10px}.kpis,.two,.three,.four,.setup-grid{grid-template-columns:1fr 1fr}.topactions .btn{display:none}.rank-row{grid-template-columns:55px 55px 1fr}.rank-errors{grid-column:3;text-align:left}.drill-summary{grid-template-columns:1fr 1fr}}
+@media print{.sidebar,.topactions,.filters,.no-print{display:none!important}.main{margin:0}.page{display:block!important}.card{box-shadow:none;break-inside:avoid}}
+
+/* Quality IQ live additions */
+.live-note{margin-bottom:14px;padding:11px 13px;background:#eef4ff;border:1px solid #cbd7ff;color:#3348a5;border-radius:9px;font-size:11px;font-weight:750}
+.assign-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}.assign-date-label{font-size:20px;font-weight:950}
+.assign-wrap{overflow:auto;max-height:620px;border:1px solid var(--line);border-radius:10px;background:#fff}.assign-table{min-width:1350px}.assign-table th,.assign-table td{text-align:center}.assign-table th:first-child,.assign-table td:first-child{position:sticky;left:0;z-index:4;text-align:left;background:#fff}.assign-table th:first-child{background:#f7f8fb}.assign-num{width:70px;min-width:62px;padding:7px;border:1px solid #d4d9e3;border-radius:6px;text-align:center}.assign-total{font-weight:900;background:#f7f8fb}
+.mgmt-gate{max-width:520px;margin:55px auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;box-shadow:var(--shadow)}.mgmt-content{display:none}.mgmt-content.unlocked{display:block}.mgmt-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.mgmt-tab{border:1px solid #d4d9e3;background:#fff;border-radius:99px;padding:7px 10px;font-size:11px;font-weight:800}.mgmt-tab.active{background:#293c86;color:#fff;border-color:#293c86}.mgmt-panel{display:none}.mgmt-panel.active{display:block}.mgmt-add{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end;margin:12px 0}.mgmt-add label{font-size:10px;font-weight:800;color:#667085}.mgmt-add input,.mgmt-add select,.mgmt-table input,.mgmt-table select{width:100%;border:1px solid #d4d9e3;border-radius:7px;padding:8px;background:#fff}.audit-line{padding:10px 0;border-bottom:1px solid var(--line);font-size:11px}.audit-line b{display:block;margin-bottom:3px}
+.trend-wrap{height:290px;border:1px solid var(--line);border-radius:10px;background:#fcfdff;padding:8px;overflow:hidden;margin-top:12px}.trend-wrap svg{width:100%;height:100%;display:block}.trend-legend{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px;font-size:10px}.trend-legend span{display:inline-flex;align-items:center;gap:4px}.trend-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}.metric-up{color:#17623f;font-weight:900}.metric-down{color:#a61b1b;font-weight:900}.metric-flat{color:#667085;font-weight:900}
+@media(max-width:1150px){.mgmt-add{grid-template-columns:1fr 1fr}}@media(max-width:720px){.mgmt-add{grid-template-columns:1fr}}
+
+/* Quality IQ test refinements */
+.retired-section{display:none!important}
+#overview,#overview .grid,#overview .card,#overview .card>*{min-width:0;max-width:100%}
+#overview .tablewrap,#overview .trend-wrap,#overview .filters{max-width:100%;width:100%}
+#overview .trend-wrap{overflow:hidden}
+#overview .grid.two>*,#overview .grid.three>*,#overview .grid.four>*{min-width:0}
+.required-head{background:#fff8df!important;color:#7a5700!important}
+.required-head::after{content:" *";color:#b42318;font-weight:950}
+.quick-grid .q-date,.quick-grid .q-project,.quick-grid .q-dist,.quick-grid .q-proc,.quick-grid .q-reviewer,.quick-grid .q-details{background:#fffdf2;border-color:#ead99c}
+.quick-grid td.missing-cell{position:relative;background:#fff1f0!important;padding-bottom:22px}
+.quick-grid td.missing-cell input,.quick-grid td.missing-cell select{border-color:#d92d20!important;background:#fff!important;box-shadow:0 0 0 2px rgba(217,45,32,.10)}
+.quick-grid td.missing-cell::after{content:"⚠ Required";position:absolute;left:7px;bottom:4px;font-size:9px;font-weight:900;color:#b42318;white-space:nowrap}
+.quick-grid tr.row-error td{background:inherit}
+.log-validation-note{margin-top:9px;padding:9px 11px;border-radius:8px;background:#fff8df;border:1px solid #efd78d;color:#7a5700;font-size:10px;font-weight:800}
+.assign-config-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
+.remove-from-assign{color:#9a3412;border-color:#fdba74;background:#fff7ed}
+@media(max-width:900px){#overview .grid.two,#overview .grid.three,#overview .grid.four{grid-template-columns:1fr!important}.trend-wrap{height:250px}}
+
+
+/* v19 theme + filter refinements */
+body.dark{
+  --bg:#0b1220;--card:#111827;--ink:#e5e7eb;--muted:#94a3b8;--line:#263244;
+  --nav:#050914;--accent:#8091ff;--accent2:#a78bfa;--good:#4ade80;--warn:#fbbf24;
+  --danger:#f87171;--shadow:0 10px 28px rgba(0,0,0,.22)
+}
+body.dark .top,body.dark .card,body.dark .drill-box,body.dark .assign-wrap,
+body.dark .quick-grid-wrap,body.dark .tablewrap{background:var(--card);color:var(--ink)}
+body.dark .btn,body.dark .input,body.dark .select,body.dark input,body.dark select,body.dark textarea{
+  background:#162033;color:#e5e7eb;border-color:#334155
+}
+body.dark th{background:#172033;color:#e5e7eb}
+body.dark td{border-color:#263244}
+body.dark tbody tr:hover td{background:#162033}
+body.dark .insight,body.dark .focus,body.dark .alert-card,body.dark .review-item,
+body.dark .teamcard,body.dark .upload,body.dark .rank-card{background:#131d2e;border-color:#2b3a50}
+body.dark .track{background:#263244}
+body.dark .team-auto{background:#172033!important;color:#94a3b8}
+body.dark .matrix th:first-child,body.dark .matrix td:first-child,
+body.dark .assign-table th:first-child,body.dark .assign-table td:first-child{background:#111827}
+body.dark .assign-table th:first-child{background:#172033}
+body.dark .live-note{background:#13213c;border-color:#2c4678;color:#b7c8ff}
+body.dark .callout{background:#123025;border-color:#275844;color:#86efac}
+body.dark .callout.warn,body.dark .warn{background:#342707;border-color:#6b5310;color:#fde68a}
+body.dark .danger-zone{background:#301717;border-color:#653131}
+body.dark .log-validation-note{background:#302805;border-color:#645414;color:#fde68a}
+body.dark .quick-grid .q-date,body.dark .quick-grid .q-project,body.dark .quick-grid .q-dist,
+body.dark .quick-grid .q-proc,body.dark .quick-grid .q-reviewer,body.dark .quick-grid .q-details{
+  background:#2a2716;border-color:#675f2a;color:#fff
+}
+.period-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px}
+.period-label{font-size:10px;color:var(--muted);font-weight:800}
+.assign-day-summary{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(320px,1.3fr);gap:12px;margin-top:12px}
+.assign-overall{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fbfcff}
+body.dark .assign-overall{background:#131d2e}
+.assign-overall .big{font-size:30px;font-weight:950;margin-top:5px}
+.dist-chip-list{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.dist-chip{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fbfcff;font-size:11px}
+body.dark .dist-chip{background:#131d2e}
+@media(max-width:800px){.assign-day-summary{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+<aside class="sidebar">
+ <div class="brand">QUALITY IQ<small>LIVE • SHARED QUALITY + WORKLOAD INTELLIGENCE</small></div>
+ <button class="navbtn active" data-page="overview">▦ Executive Overview</button>
+ <button class="navbtn" data-page="ranking">🏆 Quality Ranking</button>
+ <button class="navbtn" data-page="pareto">◈ Pareto Analysis</button>
+ <button class="navbtn" data-page="alerts">⚑ Repeat Mistake Alerts</button>
+ <button class="navbtn" data-page="theme-review">◇ Theme Review</button>
+ <button class="navbtn" data-page="teams">▤ Team Analysis</button>
+ <button class="navbtn" data-page="processors">♙ Processor Analysis</button>
+ <button class="navbtn" data-page="reviewers">✓ Reviewer Analysis</button>
+ <button class="navbtn" data-page="distribution">◫ Distribution Analysis</button>
+ <button class="navbtn" data-page="assign">▣ Assign</button>
+ <button class="navbtn" data-page="log">✚ Log Entry</button>
+ <button class="navbtn" data-page="register">☷ Full Register</button>
+ <button class="navbtn" data-page="management">⚙ Management System 🔒</button>
+</aside>
+
+<div class="main">
+<header class="top">
+ <div><div class="title" id="pageTitle">Executive Overview</div><div class="sub" id="topSub">Shared database not connected yet.</div></div>
+ <div class="topactions">
+   <span class="status" id="dbStatus"><span class="dot"></span><span id="dbStatusText">Connecting…</span></span>
+   <button class="btn" id="themeToggleBtn" type="button">🌙 Dark</button>
+   <button class="btn" onclick="exportCSV()">Export CSV</button>
+   <button class="btn primary" onclick="resetFilters()">Reset Filters</button>
+ </div>
+</header>
+
+<div class="content">
+<div class="live-note">QUALITY IQ LIVE — Shared Supabase database. Management configuration, daily assignments, backup and restore sync across users.</div>
+<div class="filters no-print">
+ <select id="teamFilter" class="select"><option value="">All Teams</option></select>
+ <select id="monthFilter" class="select"><option value="">All Months</option></select>
+ <select id="dayFilter" class="select"><option value="">All Days</option></select>
+ <select id="processorFilter" class="select"><option value="">All Processors</option></select>
+ <select id="reviewerFilter" class="select"><option value="">All Reviewers</option></select>
+ <select id="distFilter" class="select"><option value="">All Distribution Types</option></select>
+</div>
+
+<section class="page active" id="overview">
+ <div id="connectNotice" class="callout warn" style="margin-bottom:14px">Connecting to shared database…</div>
+ <div class="grid kpis" id="kpis"></div>
+ <div class="grid two" style="margin-top:14px">
+  <div class="card"><h2>Team Error Volume</h2><div id="teamBars"></div></div>
+  <div class="card"><h2>Primary Error Themes</h2><div class="desc">One source error = one primary theme.</div><div id="themeBars"></div><div class="callout" id="reconcile"></div></div>
+ </div>
+ <div class="grid two" style="margin-top:14px">
+  <div class="card"><h2>Processor Error Volume</h2><div id="processorBars"></div></div>
+  <div class="card"><h2>Management Signals</h2><div id="signals"></div></div>
+ </div>
+ <div class="card" style="margin-top:14px"><h2>Workload & Quality Overview</h2><div class="desc">Daily Assign counts are aggregated by month/selected period and compared with error entries. Assignment day and error-entry day do not need to match.</div><div class="grid kpis" id="workloadKpis" style="margin-top:12px"></div></div>
+ <div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Processor Error Rate Trend</h2><div class="desc">3-month cycle by default. All active processors or one selected processor.</div></div><div class="filters" style="margin:0"><select id="trendProcessor" class="select"><option value="ALL">All Active Processors</option></select><button class="btn" id="trendPrevBtn">← Previous 3</button><button class="btn" id="trendLatestBtn">Latest 3</button><button class="btn" id="trendNextBtn">Next 3 →</button><button class="btn" id="trendAllBtn">All Months</button></div></div><div id="processorTrendChart" class="trend-wrap"></div><div id="processorTrendLegend" class="trend-legend"></div><div id="trendComment" class="callout" style="margin-top:10px"></div></div>
+ <div class="grid two" style="margin-top:14px">
+  <div class="card">
+   <h2>Processor Workload vs Error</h2>
+   <div class="period-controls"><span class="period-label">Timeline</span><select id="processorQualityPeriod" class="select"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select><span class="note" id="processorQualityPeriodLabel"></span></div>
+   <div class="tablewrap"><table id="processorQualityTable"></table></div>
+  </div>
+  <div class="card">
+   <h2>Distribution Workload vs Error</h2>
+   <div class="period-controls"><span class="period-label">Timeline</span><select id="distributionQualityPeriod" class="select"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select><span class="note" id="distributionQualityPeriodLabel"></span></div>
+   <div class="tablewrap"><table id="distributionQualityTable"></table></div>
+  </div>
+ </div>
+</section>
+
+<section class="page" id="ranking">
+ <div class="card"><h2>Processor Quality Ranking</h2><div class="desc">Lowest recorded error volume ranks first. This is error-volume ranking, not efficiency/productivity rate.</div><div id="rankingCoverage" class="callout" style="margin-top:12px"></div><div id="rankingPodium" class="grid three" style="margin-top:14px"></div><div id="rankingList" style="margin-top:14px"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Error Rate Ranking</h2><div class="desc">Lower error rate ranks higher using processed count as denominator.</div><div id="errorRateRanking"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Team Error-Volume Ranking</h2><div id="teamRankingList"></div></div>
+</section>
+
+<section class="page retired-section" id="scorecard">
+ <div class="card"><h2>Team Executive Scorecard</h2><div class="grid four" id="teamScorecards" style="margin-top:13px"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Processor Scorecard</h2><div id="processorScorecards"></div></div>
+</section>
+
+<section class="page" id="pareto">
+ <div class="card"><h2>Pareto Analysis</h2><div class="desc">Mutually-exclusive primary themes with cumulative share.</div><div id="paretoTable"></div></div>
+</section>
+
+<section class="page retired-section" id="coaching"><div class="grid two"><div class="card"><h2>Team Coaching Focus</h2><div id="teamCoaching"></div></div><div class="card"><h2>Processor Coaching Focus</h2><div id="processorCoaching"></div></div></div></section>
+
+<section class="page" id="alerts"><div class="card"><h2>Repeat Mistake Alerts</h2><div class="desc">Same Processor + same Primary Theme appearing at least twice in the current selection.</div><div id="repeatAlertSummary" class="grid three" style="margin-top:13px"></div><div id="repeatAlerts"></div></div></section>
+
+<section class="page" id="theme-review">
+ <div class="grid two">
+  <div class="card"><h2>Needs Review Queue</h2><div class="desc">Unclassified records waiting for a final theme.</div><div id="reviewQueue"></div></div>
+  <div class="card"><h2>Manual Theme Override</h2><input id="overrideSearch" class="input" style="width:100%;margin-top:10px" placeholder="Search project, processor, reviewer or error…"><div id="overrideResults"></div></div>
+ </div>
+</section>
+
+<section class="page" id="teams"><div class="grid four" id="teamProfiles"></div><div class="card" style="margin-top:14px"><h2>Team × Primary Theme Matrix</h2><div class="desc">Click any number to see the underlying projects.</div><div class="tablewrap"><table class="matrix" id="teamMatrix"></table></div></div></section>
+
+<section class="page" id="processors"><div class="card"><h2>Processor Analysis</h2><div id="processorDetail"></div></div><div class="card" style="margin-top:14px"><h2>Processor × Primary Theme Matrix</h2><div class="desc">Click any number to drill into actual records.</div><div class="tablewrap"><table class="matrix" id="processorMatrix"></table></div></div></section>
+
+<section class="page" id="reviewers"><div class="grid two"><div class="card"><h2>Reviewer Finding Volume</h2><div id="reviewerBars"></div></div><div class="card"><h2>Interpretation</h2><div class="insight"><b>Important</b>This is finding volume, not reviewer efficiency.</div></div></div></section>
+
+<section class="page" id="distribution"><div class="grid two"><div class="card"><h2>Distribution Type — Error Volume</h2><div class="desc">Term + Termination are combined; Loan + Loan Advance + Loan Withdrawal are combined; Term Residual stays separate.</div><div id="distBars"></div></div><div class="card"><h2>Top Distribution Signals</h2><div id="distSignals"></div></div></div></section>
+
+<section class="page retired-section" id="repeats"><div class="grid three" id="repeatKpis"></div><div class="card" style="margin-top:14px"><h2>Repeated Project IDs</h2><div class="desc">Repeated Project ID does not automatically mean the identical mistake was repeated.</div><div id="repeatList"></div></div></section>
+
+
+<section class="page" id="assign">
+ <div class="card">
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><h2>Daily Assign</h2><div class="desc">Excel-style daily workload count. No Project ID. Rows and columns are controlled from the password-protected Management System.</div></div><div class="assign-date-label" id="assignDateLabel"></div></div>
+  <div class="assign-toolbar"><button class="btn" id="assignPrevDay">← Previous Day</button><input id="assignDate" class="input" type="date"><button class="btn" id="assignToday">Today</button><button class="btn" id="assignNextDay">Next Day →</button><button class="btn primary" id="saveAssignBtn">Save Day</button><button class="btn" id="downloadAssignCsvBtn">Download Date CSV</button></div>
+  <div class="assign-config-actions"><button class="btn" id="assignManageProcessorsBtn">⚙ Manage Processors 🔒</button><button class="btn" id="assignManageDistributionsBtn">⚙ Manage Distribution Types 🔒</button></div>
+  <div class="desc">Add/remove processors and distribution columns from Management System. “Remove from Assign” keeps historical data but hides that item from future Assign sheets.</div>
+  <div class="assign-wrap"><table class="assign-table" id="assignTable"></table></div>
+  <div class="assign-day-summary">
+   <div class="assign-overall"><div class="note">Overall Assigned Count</div><div class="big" id="assignOverallTotal">0</div><div class="note" id="assignOverallMeta">selected date</div></div>
+   <div class="assign-overall"><div class="note">Distribution Count — Selected Date</div><div class="dist-chip-list" id="assignDistributionSummary"></div></div>
+  </div>
+  <div id="assignStatus" class="note" style="margin-top:8px"></div>
+ </div>
+ <div class="grid two" style="margin-top:14px"><div class="card"><h2>Monthly Processor Workload</h2><div class="filters" style="margin-top:10px"><input id="assignMonth" class="input" type="month"></div><div class="tablewrap"><table id="assignMonthlyProcessorTable"></table></div></div><div class="card"><h2>Monthly Distribution Workload</h2><div id="assignMonthlyDistribution"></div></div></div>
+</section>
+
+<section class="page" id="log">
+ <div class="card">
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
+   <div><h2>Error Log Entry — Shared Quick Entry</h2><div class="desc">Required input boxes/dropdowns are highlighted. Reviewer is selected from the active reviewer dropdown. After saving, the row resets automatically.</div></div>
+   <div><button class="btn" type="button" id="fillTodayBtn">Fill Today</button> <button class="btn primary" type="button" id="saveLogRowsBtn">Save Entry</button></div>
+  </div>
+  <div class="quick-grid-wrap" style="margin-top:14px"><table class="quick-grid"><thead><tr><th>Date</th><th>Project ID</th><th>Distribution</th><th>Processor</th><th>Team (Auto)</th><th>Reviewer</th><th>Theme (Optional)</th><th>Error Details</th></tr></thead><tbody id="quickLogBody"></tbody></table></div>
+  <div class="log-validation-note">Required: Date, Project ID, Distribution, Processor, Reviewer and Error Details. Missing fields will show a red ⚠ Required sign.</div><div id="quickSaveMessage" class="note" style="margin-top:9px"></div>
+ </div>
+ <div class="grid two" style="margin-top:14px"><div class="card"><h2>Today's Live Snapshot</h2><div class="grid two" id="todayKpis"></div><div id="todayTeamBars"></div></div><div class="card"><h2>Today's Error Themes</h2><div id="todayThemeBars"></div></div></div>
+ <div class="card" style="margin-top:14px"><h2>Shared Log Entries</h2><div class="tablewrap"><table id="logTable"></table></div></div>
+</section>
+
+<section class="page" id="register">
+ <div class="card">
+  <h2>Full Shared Error Register</h2>
+  <div class="desc">Delete actions are password protected and permanently remove the selected database row(s).</div>
+  <div class="filters" style="margin-top:12px"><input id="search" class="input" placeholder="Search project ID or error text…"></div>
+  <div class="register-tools">
+   <button class="btn" id="selectVisibleBtn">Select All Visible</button>
+   <button class="btn" id="clearSelectionBtn">Clear Selection</button>
+   <button class="btn danger" id="deleteSelectedBtn" disabled>Delete Selected</button>
+   <span class="delete-count" id="registerSelectionCount">0 selected</span>
+  </div>
+  <div class="note" id="shown" style="margin-top:8px"></div>
+  <div class="tablewrap" style="margin-top:9px"><table id="registerTable"></table></div>
+ </div>
+</section>
+
+<section class="page" id="management">
+ <div id="managementGate" class="mgmt-gate"><h2>Management System 🔒</h2><div class="desc">Separate password-protected configuration area. Password verification is handled by Supabase.</div><input id="managementPassword" class="input" type="password" placeholder="Management password" style="width:100%;margin-top:14px"><button id="unlockManagementBtn" class="btn primary" style="width:100%;margin-top:9px">Unlock Management</button><div id="managementGateMsg" class="note" style="margin-top:8px"></div></div>
+ <div id="managementContent" class="mgmt-content">
+  <div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Management System</h2><div class="desc">Configuration changes sync to the shared database. Historical errors and assignments are preserved.</div></div><button id="lockManagementBtn" class="btn">Lock</button></div><div class="grid four" id="managementKpis" style="margin-top:12px"></div></div>
+  <div class="mgmt-tabs"><button class="mgmt-tab active" data-mgmt="teams">Teams</button><button class="mgmt-tab" data-mgmt="processors">Processors</button><button class="mgmt-tab" data-mgmt="distributions">Distribution Types</button><button class="mgmt-tab" data-mgmt="reviewers">Reviewers</button><button class="mgmt-tab" data-mgmt="themes">Error Themes</button><button class="mgmt-tab" data-mgmt="data">Data Center</button><button class="mgmt-tab" data-mgmt="audit">Change History</button></div>
+  <div class="mgmt-panel active" id="mgmt-teams"><div class="card"><h2>Manage Teams</h2><div class="mgmt-add"><div><label>Team Name<input id="newTeamName" placeholder="Team Name"></label></div><div><label>Lead Initial<input id="newTeamLead" placeholder="LF"></label></div><div><label>Status<select id="newTeamStatus"><option>Active</option><option>Inactive</option></select></label></div><div></div><button class="btn primary" id="addTeamBtn">+ Add Team</button></div><div class="tablewrap"><table id="manageTeamsTable" class="mgmt-table"></table></div></div></div>
+  <div class="mgmt-panel" id="mgmt-processors"><div class="card"><h2>Manage Processors</h2><div class="callout warn">Remove from Assign = mark Inactive. Historical errors and assignment history stay untouched.</div><div class="mgmt-add"><div><label>Initial<input id="newProcessorInitial" placeholder="AB"></label></div><div><label>Name<input id="newProcessorName" placeholder="Processor Name"></label></div><div><label>Team<select id="newProcessorTeam"></select></label></div><div><label>Status<select id="newProcessorStatus"><option>Active</option><option>Inactive</option><option>Terminated</option></select></label></div><button class="btn primary" id="addProcessorBtn">+ Add Processor</button></div><div class="tablewrap"><table id="manageProcessorsTable" class="mgmt-table"></table></div></div></div>
+  <div class="mgmt-panel" id="mgmt-distributions"><div class="card"><h2>Manage Distribution Types</h2><div class="callout warn">Remove from Assign = mark Inactive. Old error/assignment records remain available.</div><div class="mgmt-add"><div><label>Distribution Type<input id="newDistName" placeholder="QDRO"></label></div><div><label>Status<select id="newDistStatus"><option>Active</option><option>Inactive</option></select></label></div><div></div><div></div><button class="btn primary" id="addDistBtn">+ Add Distribution</button></div><div class="tablewrap"><table id="manageDistTable" class="mgmt-table"></table></div></div></div>
+  <div class="mgmt-panel" id="mgmt-reviewers"><div class="card"><h2>Manage Reviewers</h2><div class="mgmt-add"><div><label>Initial<input id="newReviewerInitial" placeholder="LF"></label></div><div><label>Name<input id="newReviewerName" placeholder="Reviewer Name"></label></div><div><label>Status<select id="newReviewerStatus"><option>Active</option><option>Inactive</option></select></label></div><div></div><button class="btn primary" id="addReviewerBtn">+ Add Reviewer</button></div><div class="tablewrap"><table id="manageReviewersTable" class="mgmt-table"></table></div></div></div>
+  <div class="mgmt-panel" id="mgmt-themes">
+   <div class="card">
+    <h2>Manage Error Themes</h2>
+    <div class="desc">Add custom error themes for manual Theme Review / Error Log selection. Standard auto-classifier themes remain protected.</div>
+    <div class="mgmt-add"><div><label>New Theme<input id="newThemeName" placeholder="Custom Error Theme"></label></div><div><label>Status<select id="newThemeStatus"><option>Active</option><option>Inactive</option></select></label></div><div></div><div></div><button class="btn primary" id="addThemeBtn">+ Add Theme</button></div>
+    <div class="tablewrap"><table id="manageThemesTable" class="mgmt-table"></table></div>
+   </div>
+  </div>
+  <div class="mgmt-panel" id="mgmt-data"><div class="card">
+  <h2>Shared Database</h2>
+  <div class="desc">This live version reads and writes the shared Supabase database. Configuration and assignments are shared across users.</div>
+  <div class="grid three" style="margin-top:12px">
+   <div class="insight"><b>Connection</b><span id="dataCenterConnection">Connecting…</span></div>
+   <div class="insight"><b>Sync</b>Realtime + periodic refresh</div>
+   <div class="insight"><b>Storage</b>Supabase</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="refreshDbBtn">Refresh Now</button></div>
+  <div id="dbMessage" class="note" style="margin-top:9px"></div>
+ </div>
+
+<div class="card" style="margin-top:14px">
+ <h2>Error Backup / Restore</h2>
+ <div class="desc">Download a full error-data safety copy or restore a CSV exported from the previous Quality IQ version. Restore does not clear current data; matching records are skipped.</div>
+ <div class="upload" style="margin-top:10px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+   <button class="btn" id="downloadFullErrorBackupBtn">Download Full Error Backup CSV</button>
+   <input id="backupErrorFile" type="file" accept=".csv,text/csv">
+   <button class="btn primary" id="importErrorBackupBtn">Import Error Backup CSV</button>
+  </div>
+  <div class="note" id="backupErrorStatus" style="margin-top:8px">CSV exported from the old/current Quality IQ is supported.</div>
+ </div>
+</div>
+
+<div class="card" style="margin-top:14px"><h2>Full Team Data Upload</h2><div class="upload" style="margin-top:10px"><label class="note">Reporting month</label><input id="fullMonth" type="month"><label class="note">Excel / CSV</label><input id="fullFile" type="file" accept=".xlsx,.xls,.csv"><button class="btn primary" onclick="uploadDataset('FULL')">Upload to Shared Database</button><div class="note" id="fullStatus" style="margin-top:8px"></div></div></div>
+
+ <div class="card" style="margin-top:14px"><h2>Individual Team Upload</h2><div class="grid four" id="teamUploadSlots" style="margin-top:12px"></div></div>
+ <div class="card danger-zone" style="margin-top:14px">
+  <h2>Shared Database Cleanup — Password Protected</h2>
+  <div class="desc">Permanently delete every shared error row. Use only when you intentionally want to clear the live error database.</div>
+  <div style="margin-top:12px"><button class="btn danger" id="deleteAllDataBtn">Delete ALL Shared Error Entries</button></div>
+  <div id="deleteAllStatus" class="note" style="margin-top:8px"></div>
+ </div>
+ <div class="card" style="margin-top:14px"><h2>Shared Database Summary</h2><div id="dbSummary"></div></div>
+ <div class="card" style="margin-top:14px"><h2>Current Team Structure</h2><div class="grid four" id="structureCards" style="margin-top:12px"></div></div></div>
+  <div class="mgmt-panel" id="mgmt-audit"><div class="card"><h2>Management Change History</h2><div id="auditList"></div></div></div>
+ </div>
+</section>
+
+</div>
+</div>
+
+<div class="drill-modal" id="drillModal" aria-hidden="true"><div class="drill-box" role="dialog" aria-modal="true"><div class="drill-head"><div><div class="title" id="drillTitle">Drill-down</div><div class="note" id="drillMeta"></div></div><button class="btn" id="drillClose">Close</button></div><div class="drill-body"><div class="filters" style="margin-top:12px"><input id="drillSearch" class="input" placeholder="Search drill-down…"><button class="btn" id="drillExport">Export selection</button></div><div class="drill-summary" id="drillSummary"></div><div class="note" id="drillCount"></div><div class="tablewrap" style="margin-top:9px"><table id="drillTable"></table></div></div></div></div>
+
+<script>
+const DEFAULT_THEME_NAMES=["Code / Age Code Error","Calculation / Amount","Vesting","GIACT / Verification","Source Selection / Fund Source","Payment / Add Payee","Participant / Personal Data","Unify / Relius / System","Plan / Rule Knowledge","Documentation / Missing Items","Notes / Follow-up","Fee / LOI Setup"];
+let sharedStore={config:{teams:[],processors:[],reviewers:[],distributions:[],themes:[]},errors:[],assignments:[],audit:[]};
+let TEAM_CONFIG=[];
+let DIST_TYPES=[];
+let PRIMARY_THEMES=[];
+function syncRuntimeConfig(){
+ TEAM_CONFIG=sharedStore.config.teams.map(t=>({name:t.name,lead:t.lead,status:t.status,processors:sharedStore.config.processors.filter(p=>p.teamId===t.id).map(p=>p.initial)}));
+ DIST_TYPES=sharedStore.config.distributions.filter(d=>d.status==="Active").map(d=>d.name);
+ PRIMARY_THEMES=sharedStore.config.themes.filter(t=>t.status==="Active").map(t=>t.name).concat(["Needs Review / Unclassified"]);
+}
+function configTeamById(id){return sharedStore.config.teams.find(t=>t.id===id)}
+function configProcessor(initial){return sharedStore.config.processors.find(p=>p.initial===String(initial||"").toUpperCase())}
+function activeProcessors(){return sharedStore.config.processors.filter(p=>p.status==="Active"&&(configTeamById(p.teamId)?.status!=="Inactive"))}
+function activeReviewers(){return sharedStore.config.reviewers.filter(r=>r.status==="Active")}
+function activeDistributionNames(){return sharedStore.config.distributions.filter(d=>d.status==="Active").map(d=>d.name)}
+function addAudit(){} // audit is written server-side by the password-protected management RPC
+syncRuntimeConfig();
+const AUTO_DB_URL="https://nzyrlmgwckytnfaqdogg.supabase.co";
+const AUTO_DB_KEY="sb_publishable_kRVp2WEInLsyyupqiDrWZA_DjUAd7tL";
+const AUTO_REFRESH_MS=3000;
+let db=null,dbRows=[],dbConnected=false,realtimeChannel=null,drillRows=[],themeReviewRows=[],registerVisibleRows=[];
+const selectedRegisterIds=new Set();
+const teamFilter=document.getElementById("teamFilter"),monthFilter=document.getElementById("monthFilter"),dayFilter=document.getElementById("dayFilter"),processorFilter=document.getElementById("processorFilter"),reviewerFilter=document.getElementById("reviewerFilter"),distFilter=document.getElementById("distFilter"),themeToggleBtn=document.getElementById("themeToggleBtn");
+const dbStatus=document.getElementById("dbStatus"),dbStatusText=document.getElementById("dbStatusText"),connectNotice=document.getElementById("connectNotice"),topSub=document.getElementById("topSub"),pageTitle=document.getElementById("pageTitle");
+const dbMessage=document.getElementById("dbMessage"),refreshDbBtn=document.getElementById("refreshDbBtn"),dataCenterConnection=document.getElementById("dataCenterConnection");
+const downloadFullErrorBackupBtn=document.getElementById("downloadFullErrorBackupBtn"),backupErrorFile=document.getElementById("backupErrorFile"),importErrorBackupBtn=document.getElementById("importErrorBackupBtn"),backupErrorStatus=document.getElementById("backupErrorStatus");
+const kpis=document.getElementById("kpis"),reconcile=document.getElementById("reconcile"),signals=document.getElementById("signals"),rankingCoverage=document.getElementById("rankingCoverage"),rankingPodium=document.getElementById("rankingPodium"),rankingList=document.getElementById("rankingList"),teamRankingList=document.getElementById("teamRankingList");
+const teamScorecards=document.getElementById("teamScorecards"),processorScorecards=document.getElementById("processorScorecards"),paretoTable=document.getElementById("paretoTable"),teamCoaching=document.getElementById("teamCoaching"),processorCoaching=document.getElementById("processorCoaching");
+const repeatAlertSummary=document.getElementById("repeatAlertSummary"),repeatAlerts=document.getElementById("repeatAlerts"),reviewQueue=document.getElementById("reviewQueue"),overrideSearch=document.getElementById("overrideSearch"),overrideResults=document.getElementById("overrideResults"),themeReview=document.getElementById("theme-review");
+const teamProfiles=document.getElementById("teamProfiles"),teamMatrix=document.getElementById("teamMatrix"),processorDetail=document.getElementById("processorDetail"),processorMatrix=document.getElementById("processorMatrix"),reviewerBars=document.getElementById("reviewerBars"),distBars=document.getElementById("distBars"),distSignals=document.getElementById("distSignals");
+const repeatKpis=document.getElementById("repeatKpis"),repeatList=document.getElementById("repeatList"),search=document.getElementById("search"),shown=document.getElementById("shown"),registerTable=document.getElementById("registerTable"),selectVisibleBtn=document.getElementById("selectVisibleBtn"),clearSelectionBtn=document.getElementById("clearSelectionBtn"),deleteSelectedBtn=document.getElementById("deleteSelectedBtn"),registerSelectionCount=document.getElementById("registerSelectionCount");
+const quickLogBody=document.getElementById("quickLogBody"),quickSaveMessage=document.getElementById("quickSaveMessage"),todayKpis=document.getElementById("todayKpis"),todayTeamBars=document.getElementById("todayTeamBars"),todayThemeBars=document.getElementById("todayThemeBars"),logTable=document.getElementById("logTable"),fillTodayBtn=document.getElementById("fillTodayBtn"),saveLogRowsBtn=document.getElementById("saveLogRowsBtn");
+const fullMonth=document.getElementById("fullMonth"),fullFile=document.getElementById("fullFile"),fullStatus=document.getElementById("fullStatus"),teamUploadSlots=document.getElementById("teamUploadSlots"),dbSummary=document.getElementById("dbSummary"),structureCards=document.getElementById("structureCards"),deleteAllDataBtn=document.getElementById("deleteAllDataBtn"),deleteAllStatus=document.getElementById("deleteAllStatus");
+const drillModal=document.getElementById("drillModal"),drillTitle=document.getElementById("drillTitle"),drillMeta=document.getElementById("drillMeta"),drillClose=document.getElementById("drillClose"),drillSearch=document.getElementById("drillSearch"),drillExport=document.getElementById("drillExport"),drillSummary=document.getElementById("drillSummary"),drillCount=document.getElementById("drillCount"),drillTable=document.getElementById("drillTable");
+const workloadKpis=document.getElementById("workloadKpis"),processorQualityTable=document.getElementById("processorQualityTable"),distributionQualityTable=document.getElementById("distributionQualityTable"),processorQualityPeriod=document.getElementById("processorQualityPeriod"),distributionQualityPeriod=document.getElementById("distributionQualityPeriod"),processorQualityPeriodLabel=document.getElementById("processorQualityPeriodLabel"),distributionQualityPeriodLabel=document.getElementById("distributionQualityPeriodLabel"),errorRateRanking=document.getElementById("errorRateRanking"),trendProcessor=document.getElementById("trendProcessor"),processorTrendChart=document.getElementById("processorTrendChart"),processorTrendLegend=document.getElementById("processorTrendLegend"),trendComment=document.getElementById("trendComment");
+const trendPrevBtn=document.getElementById("trendPrevBtn"),trendNextBtn=document.getElementById("trendNextBtn"),trendLatestBtn=document.getElementById("trendLatestBtn"),trendAllBtn=document.getElementById("trendAllBtn");
+const assignDate=document.getElementById("assignDate"),assignDateLabel=document.getElementById("assignDateLabel"),assignPrevDay=document.getElementById("assignPrevDay"),assignNextDay=document.getElementById("assignNextDay"),assignToday=document.getElementById("assignToday"),saveAssignBtn=document.getElementById("saveAssignBtn"),downloadAssignCsvBtn=document.getElementById("downloadAssignCsvBtn"),assignTable=document.getElementById("assignTable"),assignStatus=document.getElementById("assignStatus"),assignMonth=document.getElementById("assignMonth"),assignMonthlyProcessorTable=document.getElementById("assignMonthlyProcessorTable"),assignMonthlyDistribution=document.getElementById("assignMonthlyDistribution"),assignOverallTotal=document.getElementById("assignOverallTotal"),assignOverallMeta=document.getElementById("assignOverallMeta"),assignDistributionSummary=document.getElementById("assignDistributionSummary");
+const managementGate=document.getElementById("managementGate"),managementPassword=document.getElementById("managementPassword"),unlockManagementBtn=document.getElementById("unlockManagementBtn"),managementGateMsg=document.getElementById("managementGateMsg"),managementContent=document.getElementById("managementContent"),lockManagementBtn=document.getElementById("lockManagementBtn"),managementKpis=document.getElementById("managementKpis"),manageTeamsTable=document.getElementById("manageTeamsTable"),manageProcessorsTable=document.getElementById("manageProcessorsTable"),manageDistTable=document.getElementById("manageDistTable"),manageReviewersTable=document.getElementById("manageReviewersTable"),manageThemesTable=document.getElementById("manageThemesTable"),auditList=document.getElementById("auditList"),newProcessorTeam=document.getElementById("newProcessorTeam");
+const addTeamBtn=document.getElementById("addTeamBtn"),newTeamName=document.getElementById("newTeamName"),newTeamLead=document.getElementById("newTeamLead"),newTeamStatus=document.getElementById("newTeamStatus"),addProcessorBtn=document.getElementById("addProcessorBtn"),newProcessorInitial=document.getElementById("newProcessorInitial"),newProcessorName=document.getElementById("newProcessorName"),newProcessorStatus=document.getElementById("newProcessorStatus"),addDistBtn=document.getElementById("addDistBtn"),newDistName=document.getElementById("newDistName"),newDistStatus=document.getElementById("newDistStatus"),addReviewerBtn=document.getElementById("addReviewerBtn"),newReviewerInitial=document.getElementById("newReviewerInitial"),newReviewerName=document.getElementById("newReviewerName"),newReviewerStatus=document.getElementById("newReviewerStatus"),addThemeBtn=document.getElementById("addThemeBtn"),newThemeName=document.getElementById("newThemeName"),newThemeStatus=document.getElementById("newThemeStatus");
+let managementUnlocked=false,managementRequestedTab="",managementSessionPassword="",trendWindowOffset=0,trendShowAll=false;
+
+
+
+const UI_THEME_KEY="qualityIQ_live_ui_theme";
+function applyUiTheme(mode){
+ const dark=mode==="dark";document.body.classList.toggle("dark",dark);
+ if(themeToggleBtn)themeToggleBtn.textContent=dark?"☀️ Light":"🌙 Dark";
+ try{localStorage.setItem(UI_THEME_KEY,dark?"dark":"light")}catch(e){}
+}
+function toggleUiTheme(){applyUiTheme(document.body.classList.contains("dark")?"light":"dark")}
+
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function teamForProcessor(p){p=String(p||"").trim().toUpperCase();const t=TEAM_CONFIG.find(x=>x.processors.includes(p));return t?t.name:"Unmapped";}
+function normalizeDist(v){let c=String(v||"").trim().toLowerCase().replace(/[–—]/g,"-").replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ");if(!c)return "";if(c==="term"||c==="termination")return "Termination";if(c==="term residual"||c==="term resisual")return "Term Residual";if(c==="termination partial"||c==="term partial")return "Termination - Partial";if(c==="hardship")return "Hardship";if(c==="loan"||c==="loan advance"||c==="loan withdrawal")return "Loan";if(c==="loan refinance")return "Loan Refinance";if(c==="rmd")return "RMD";if(c==="rmd cal"||c==="rmd calculation")return "RMD Calculation";if(c==="in service"||c==="inservice")return "In Service";if(c==="plan term"||c==="plan termination"||c==="pt")return "Plan Termination";if(c==="partial plan term"||c==="plan termination partial")return "Plan Termination - Partial";if(c==="plan term auto rollover"||c==="plan termination auto rollover")return "Plan Termination - Auto Rollover";if(c==="plan term fee out"||c==="plan termination fee out")return "Plan Termination - Fee Out";if(c==="plan term hce"||c==="plan termination hce")return "Plan Termination - HCE";if(c==="cash out fee")return "Cash Out - Fee";return String(v||"").trim().replace(/\s+/g," ")}
+function themeFor(s){const low=String(s||"").toLowerCase();const rules=[
+["Code / Age Code Error",["age code wrong","incorrect age code","wrong age code","age was code wrong","age code provided","used g as age code","age code"]],
+["Calculation / Amount",["cal","calculation","amount","balance","payment amount","first payment date","withdrawal amount","highest outstanding","loan limit"]],
+["Vesting",["vesting","vested","vest"]],
+["GIACT / Verification",["giact","routing number","federal reserve"]],
+["Source Selection / Fund Source",["source selection","source selecion","selects all source","selected all source","traditional source","sh source","fund held","where participant's fund"]],
+["Payment / Add Payee",["payee","payment","withholding","fed tax","state tax","wire","ach","financial institution","financial instatution","fbo","ffct","zip"]],
+["Participant / Personal Data",["address was wrong","address mismatch","address missmatch","name mismatch","name mismatched","last name mismatch","last name mismatched","city name missmatch","city name mismatch"]],
+["Unify / Relius / System",["unify","relius","project created in wrong plan","loan worksheet"]],
+["Plan / Rule Knowledge",["plan doc","plan document","plan spec","plan allows","qjsa","elapsed time","special condition","eligible","not eligible","provision","hce","deadline","loan specifications"]],
+["Documentation / Missing Items",["missing","incomplete","not furnished","blank","not complete","paperwork","signature","form","allocation report","email body","online request","section"]],
+["Notes / Follow-up",["did not check","didn't check","didnot check","did not cancel","did not reply","wrong case","note missing","note wrong","wrong alert note","did not inquire","doesn't inquire","did not confirm","not confirmed","skipped"]],
+["Fee / LOI Setup",["dist fee","distribution fee","fee in loi","loi fee"]]
+];for(const [k,terms] of rules)if(terms.some(t=>low.includes(t)))return k;return "Needs Review / Unclassified"}
+function fingerprint(r){return [r.report_month||r.month||"",r.error_date||r.date||"",r.project_id||"",r.processor||"",r.reviewer||"",normalizeDist(r.distribution_type||r.dist_type||""),String(r.details||"").trim()].join("|").toLowerCase()}
+function dbToRow(r){return {id:r.id,date:r.error_date||"",month:r.report_month||((r.error_date||"").slice(0,7))||"",project_id:r.project_id||"",dist_type:normalizeDist(r.distribution_type||""),processor:String(r.processor||"").toUpperCase(),reviewer:String(r.reviewer||"").toUpperCase(),team:r.team||teamForProcessor(r.processor),details:r.details||"",primary_theme:r.final_theme||r.auto_theme||themeFor(r.details),auto_theme:r.auto_theme||themeFor(r.details),final_theme:r.final_theme||"",source:r.source||"",source_file:r.source_file||"",created_at:r.created_at||"",updated_at:r.updated_at||""}}
+function allRows(){return dbRows.slice()}
+function counts(rows,key){const o={};rows.forEach(r=>{const k=typeof key==="function"?key(r):r[key];if(k)o[k]=(o[k]||0)+1});return o}
+function entries(o){return Object.entries(o).sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0])))}
+function topOf(o){return entries(o)[0]||["—",0]}
+function repeatGroups(rows){const g={};rows.forEach(r=>(g[r.project_id]??=[]).push(r));return Object.fromEntries(Object.entries(g).filter(([k,v])=>k&&v.length>1))}
+function filteredRows(){const team=teamFilter.value,month=monthFilter.value,day=dayFilter.value,proc=processorFilter.value,rev=reviewerFilter.value,dist=distFilter.value;return allRows().filter(r=>(!team||r.team===team)&&(!month||r.month===month)&&(!day||r.date===day)&&(!proc||r.processor===proc)&&(!rev||r.reviewer===rev)&&(!dist||r.dist_type===dist))}
+function rankingFilteredRows(){const team=teamFilter.value,month=monthFilter.value,day=dayFilter.value,rev=reviewerFilter.value,dist=distFilter.value;return allRows().filter(r=>(!team||r.team===team)&&(!month||r.month===month)&&(!day||r.date===day)&&(!rev||r.reviewer===rev)&&(!dist||r.dist_type===dist))}
+function fillSelect(id,vals,label){const el=document.getElementById(id),cur=el.value;el.innerHTML=`<option value="">${label}</option>`+[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");if([...el.options].some(o=>o.value===cur))el.value=cur}
+function refreshOptions(){const r=allRows();fillSelect("teamFilter",TEAM_CONFIG.map(t=>t.name).concat(r.map(x=>x.team)),"All Teams");fillSelect("monthFilter",r.map(x=>x.month).concat(sharedStore.assignments.map(a=>String(a.date||"").slice(0,7))),"All Months");const dates=r.map(x=>x.date).concat(sharedStore.assignments.map(a=>a.date)).filter(Boolean).filter(d=>!monthFilter.value||String(d).slice(0,7)===monthFilter.value);fillSelect("dayFilter",dates,"All Days");fillSelect("processorFilter",sharedStore.config.processors.map(p=>p.initial).concat(r.map(x=>x.processor)),"All Processors");fillSelect("reviewerFilter",sharedStore.config.reviewers.map(x=>x.initial).concat(r.map(x=>x.reviewer)),"All Reviewers");fillSelect("distFilter",sharedStore.config.distributions.map(x=>x.name).concat(r.map(x=>x.dist_type)),"All Distribution Types")}
+function bars(obj,id,totalOverride){const el=document.getElementById(id);if(!el)return;const e=entries(obj),mx=Math.max(1,...e.map(x=>x[1])),den=totalOverride||e.reduce((a,b)=>a+b[1],0)||1;el.innerHTML=e.length?e.map(([k,v])=>`<div class="bar"><div class="barhead"><span>${esc(k)}</span><span>${v} <span class="note">(${(v/den*100).toFixed(1)}%)</span></span></div><div class="track"><div class="fill" style="width:${v/mx*100}%"></div></div></div>`).join(""):`<div class="empty">No data.</div>`}
+
+async function fetchAllTable(table,{orderCol="",ascending=true,filter=null}={}){
+ const pageSize=1000,out=[];let from=0;
+ while(true){
+  let q=db.from(table).select("*");
+  if(filter)q=filter(q);
+  if(orderCol)q=q.order(orderCol,{ascending});
+  q=q.range(from,from+pageSize-1);
+  const {data,error}=await q;if(error)throw error;
+  out.push(...(data||[]));
+  if(!data||data.length<pageSize)break;
+  from+=pageSize;
+ }
+ return out
+}
+function mapSharedConfig({teams,processors,reviewers,distributions,themes,assignments,audit}){
+ sharedStore.config.teams=teams.map(t=>({id:t.id,name:t.name,lead:t.lead_initial||"",status:t.status||"Active"}));
+ sharedStore.config.processors=processors.map(p=>({id:p.id,initial:String(p.initial||"").toUpperCase(),name:p.display_name||p.initial||"",teamId:p.team_id||"",status:p.status||"Active",joinDate:p.join_date||"",statusDate:p.status_date||""}));
+ sharedStore.config.reviewers=reviewers.map(r=>({id:r.id,initial:String(r.initial||"").toUpperCase(),name:r.display_name||r.initial||"",status:r.status||"Active"}));
+ sharedStore.config.distributions=distributions.map(d=>({id:d.id,name:d.name,status:d.status||"Active"}));
+ sharedStore.config.themes=themes.map(t=>({id:t.id,name:t.name,status:t.status||"Active",system:!!t.is_system}));
+ sharedStore.assignments=assignments.map(a=>({id:a.id,date:a.assign_date,processor:String(a.processor_initial||"").toUpperCase(),distribution:a.distribution_name||"",count:Number(a.assign_count)||0,team:a.team_name||""}));
+ sharedStore.audit=audit.map(a=>({id:a.id,at:a.changed_at,action:a.action||"",entity:a.entity_type||"",detail:a.detail||""}));
+ syncRuntimeConfig();
+}
+async function loadSharedSnapshots(){
+ const [errors,teams,processors,reviewers,distributions,themes,assignments,audit]=await Promise.all([
+  fetchAllTable("errors",{orderCol:"created_at",ascending:false,filter:q=>q.eq("archived",false)}),
+  fetchAllTable("quality_teams",{orderCol:"sort_order",ascending:true}),
+  fetchAllTable("quality_processors",{orderCol:"sort_order",ascending:true}),
+  fetchAllTable("quality_reviewers",{orderCol:"sort_order",ascending:true}),
+  fetchAllTable("quality_distribution_types",{orderCol:"sort_order",ascending:true}),
+  fetchAllTable("quality_error_themes",{orderCol:"sort_order",ascending:true}),
+  fetchAllTable("quality_assignments",{orderCol:"assign_date",ascending:false}),
+  fetchAllTable("quality_config_audit",{orderCol:"changed_at",ascending:false})
+ ]);
+ mapSharedConfig({teams,processors,reviewers,distributions,themes,assignments,audit});
+ dbRows=errors.filter(r=>r.source!=="Baseline").map(dbToRow);
+}
+function setDbStatus(ok,text){dbConnected=ok;dbStatus.classList.toggle("ok",ok);dbStatusText.textContent=text||(ok?"Shared Live":"Disconnected");connectNotice.style.display=ok?"none":"block";topSub.textContent=`${dbRows.length} shared record(s) loaded`;if(dataCenterConnection)dataCenterConnection.textContent=ok?"Supabase connected":"Disconnected"}
+async function connectDatabase(showMessage=true){
+ try{
+  if(!window.supabase)throw new Error("Supabase library did not load.");
+  if(realtimeChannel&&db)try{await db.removeChannel(realtimeChannel)}catch(e){}
+  db=window.supabase.createClient(AUTO_DB_URL,AUTO_DB_KEY,{auth:{persistSession:false}});
+  await loadSharedSnapshots();setDbStatus(true,"Shared Live");
+  if(showMessage)dbMessage.textContent=`Connected. ${dbRows.length} shared error row(s) loaded.`;
+  refreshOptions();quickLogBody.innerHTML="";ensureQuickRows();render();return true
+ }catch(e){setDbStatus(false,"Connection Error");dbMessage.textContent="Database connection failed: "+(e.message||e);return false}
+}
+let refreshInProgress=false;
+async function refreshSharedData(silent=false){
+ if(refreshInProgress||!db)return;refreshInProgress=true;
+ try{await loadSharedSnapshots();setDbStatus(true,"Shared Live");refreshOptions();render();if(!silent)dbMessage.textContent=`Refreshed ${dbRows.length} shared error row(s).`}
+ catch(e){setDbStatus(false,"Refresh Error");if(!silent)dbMessage.textContent="Refresh failed: "+(e.message||e)}
+ finally{refreshInProgress=false}
+}
+function subscribeRealtime(){
+ if(!db)return;
+ let timer=null;const schedule=()=>{clearTimeout(timer);timer=setTimeout(()=>refreshSharedData(true),450)};
+ realtimeChannel=db.channel("quality-iq-final-live")
+  .on("postgres_changes",{event:"*",schema:"public",table:"errors"},schedule)
+  .on("postgres_changes",{event:"*",schema:"public",table:"quality_assignments"},schedule)
+  .on("postgres_changes",{event:"*",schema:"public",table:"quality_teams"},schedule)
+  .on("postgres_changes",{event:"*",schema:"public",table:"quality_processors"},schedule)
+  .on("postgres_changes",{event:"*",schema:"public",table:"quality_reviewers"},schedule)
+  .on("postgres_changes",{event:"*",schema:"public",table:"quality_distribution_types"},schedule)
+  .on("postgres_changes",{event:"*",schema:"public",table:"quality_error_themes"},schedule)
+  .on("postgres_changes",{event:"*",schema:"public",table:"quality_config_audit"},schedule)
+  .subscribe();
+ if(AUTO_REFRESH_MS>0)setInterval(()=>{if(!document.hidden)refreshSharedData(true)},AUTO_REFRESH_MS)
+}
+function requireDb(){if(!dbConnected||!db){alert("Shared database is not connected yet.");return false}return true}
+
+function render(){
+ const rows=filteredRows(),
+       themes=counts(rows,"primary_theme"),
+       themeTotal=Object.values(themes).reduce((a,b)=>a+b,0),
+       repeats=repeatGroups(rows);
+
+ topSub.textContent=dbConnected
+   ?`${rows.length} selected shared records • ${new Set(rows.map(r=>r.project_id)).size} unique projects`
+   :"Shared database not connected yet.";
+
+ kpis.innerHTML=[
+   ["Error Records",rows.length,"selected local rows"],
+   ["Unique Projects",new Set(rows.map(r=>r.project_id)).size,"project IDs"],
+   ["Teams",new Set(rows.map(r=>r.team)).size,"represented"],
+   ["Processors",new Set(rows.map(r=>r.processor)).size,"represented"],
+   ["Reviewers",new Set(rows.map(r=>r.reviewer)).size,"represented"],
+   ["Theme Check",themeTotal,"must equal error records"]
+ ].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">${x[2]}</div></div>`).join("");
+
+ bars(counts(rows,"team"),"teamBars",rows.length);
+ bars(themes,"themeBars",rows.length);
+ bars(counts(rows,"processor"),"processorBars",rows.length);
+ reconcile.textContent=`✓ Reconciled: ${themeTotal} theme assignments = ${rows.length} selected records`;
+
+ const tp=topOf(counts(rows,"processor")),
+       tt=topOf(themes),
+       td=topOf(counts(rows,"dist_type")),
+       un=rows.filter(r=>r.primary_theme==="Needs Review / Unclassified").length;
+
+ signals.innerHTML=
+   `<div class="insight"><b>Highest processor error volume</b>${esc(tp[0])} — ${tp[1]}</div>
+    <div class="insight"><b>Largest primary theme</b>${esc(tt[0])} — ${tt[1]}</div>
+    <div class="insight"><b>Most represented distribution</b>${esc(td[0])} — ${td[1]}</div>
+    <div class="insight"><b>Repeat-project signal</b>${Object.keys(repeats).length} repeated Project IDs</div>
+    <div class="insight"><b>Theme review queue</b>${un} unclassified record(s)</div>`;
+
+ renderRanking(rankingFilteredRows());
+ renderScorecard(rows);
+ renderPareto(rows);
+ renderCoaching(rows);
+ renderRepeatAlerts(rows);
+ renderThemeReview(rows);
+ renderTeams(rows);
+ renderProcessors(rows);
+ renderReviewers(rows);
+ renderDistribution(rows);
+ renderRepeats(rows);
+ renderRegister(rows);
+ renderLogSection();
+ renderDataCenter();
+ renderWorkloadQuality();
+ renderErrorRateRanking();
+ renderAssign();
+ renderManagement();
+}
+
+function ordinal(n){const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
+function rankingComment(position,count,total,theme){if(count===0)return "Excellent current control — no recorded errors in the selected data.";const p=position/Math.max(total,1);if(position===1)return `Leading current error-volume ranking. Keep reinforcing ${theme||"the current checking routine"}.`;if(p<=.34)return `Very strong position. Continue the same controls and stay attentive to ${theme||"the main recurring theme"}.`;if(p<=.67)return `Solid position. Focused refresh on ${theme||"the main recurring theme"} can move this result upward.`;if(position===total)return `Clear coaching opportunity. Prioritize ${theme||"the leading error theme"} and repeat-check controls.`;return `Good opportunity to strengthen consistency by concentrating on ${theme||"the leading error theme"}.`}
+function renderRanking(rows){const rep=[...new Set(rows.map(r=>r.team).filter(t=>TEAM_CONFIG.some(x=>x.name===t)))],configured=TEAM_CONFIG.filter(t=>rep.includes(t.name)).flatMap(t=>t.processors),pc=counts(rows,"processor");const ranked=configured.map(p=>{const rs=rows.filter(r=>r.processor===p),top=topOf(counts(rs,"primary_theme"));return{p,count:pc[p]||0,team:teamForProcessor(p),topTheme:top[0]==="—"?"":top[0]}}).sort((a,b)=>a.count-b.count||a.p.localeCompare(b.p));let last=null,place=0;ranked.forEach((x,i)=>{if(last===null||x.count!==last)place=i+1;x.place=place;last=x.count});rankingCoverage.innerHTML=rep.length?`Coverage: <b>${rep.map(esc).join(", ")}</b> • ${ranked.length} configured processors. Processor filter is ignored for fair comparison.`:"No represented team data.";
+ rankingPodium.innerHTML=ranked.slice(0,3).map((x,i)=>`<div class="rank-card ${i===0?"first":""}"><div class="rank-place">${ordinal(x.place)} place</div><div class="rank-name">${esc(x.p)}</div><div class="note">${esc(x.team)}</div><div class="rank-count">${x.count}</div><div class="note">recorded errors</div><div class="rank-comment">${esc(rankingComment(x.place,x.count,ranked.length,x.topTheme))}</div></div>`).join("")||`<div class="empty">No ranking data.</div>`;
+ rankingList.innerHTML=ranked.map(x=>`<div class="rank-row"><div class="rank-pos">${ordinal(x.place)}</div><div class="rank-proc">${esc(x.p)}</div><div><div class="note">${esc(x.team)}${x.topTheme?` • focus: ${esc(x.topTheme)}`:""}</div><div class="rank-comment">${esc(rankingComment(x.place,x.count,ranked.length,x.topTheme))}</div></div><div class="rank-errors">${x.count} error${x.count===1?"":"s"}</div></div>`).join("");
+ const teams=rep.map(t=>({team:t,count:rows.filter(r=>r.team===t).length})).sort((a,b)=>a.count-b.count);teamRankingList.innerHTML=teams.map((x,i)=>`<div class="rank-row"><div class="rank-pos">${ordinal(i+1)}</div><div class="rank-proc" style="font-size:13px">${esc(x.team.replace("Team ",""))}</div><div class="rank-comment">${i===0?"Strong current team-level error-volume position.":"Focus coaching on the leading themes to move upward."}</div><div class="rank-errors">${x.count} errors</div></div>`).join("")||`<div class="empty">No data.</div>`}
+function renderScorecard(rows){teamScorecards.innerHTML=TEAM_CONFIG.map(t=>{const rs=rows.filter(r=>r.team===t.name),th=topOf(counts(rs,"primary_theme")),di=topOf(counts(rs,"dist_type"));return`<div class="teamcard"><div class="teamname">${esc(t.name)}</div><div class="lead">Lead: ${t.lead}</div><div class="insight"><b>Error records</b>${rs.length}</div><div class="insight"><b>Top theme</b>${esc(th[0])} (${th[1]})</div><div class="insight"><b>Top distribution</b>${esc(di[0])} (${di[1]})</div></div>`}).join("");processorScorecards.innerHTML=entries(counts(rows,"processor")).map(([p,n],i)=>{const top=topOf(counts(rows.filter(r=>r.processor===p),"primary_theme"));return`<div class="focus"><div class="name">${i+1}. ${esc(p)} <span class="badge">${esc(teamForProcessor(p))}</span></div><div class="note">${n} errors • top theme: ${esc(top[0])} (${top[1]})</div></div>`}).join("")}
+function renderPareto(rows){const e=entries(counts(rows,"primary_theme")),total=rows.length||1;let cum=0;paretoTable.innerHTML=e.length?`<div class="tablewrap"><table><thead><tr><th>#</th><th>Primary Theme</th><th>Errors</th><th>Share</th><th>Cumulative</th></tr></thead><tbody>${e.map(([k,v],i)=>{cum+=v;return`<tr><td>${i+1}</td><td><b>${esc(k)}</b></td><td>${v}</td><td>${(v/total*100).toFixed(1)}%</td><td><b>${(cum/total*100).toFixed(1)}%</b></td></tr>`}).join("")}</tbody></table></div>`:`<div class="empty">No data.</div>`}
+function focusBlock(name,rs){return`<div class="focus"><div class="name">${esc(name)}</div>${entries(counts(rs,"primary_theme")).slice(0,3).map((x,i)=>`<div class="note" style="margin-top:6px"><span class="badge">${i+1}</span>${esc(x[0])} — <b>${x[1]}</b></div>`).join("")||'<div class="note">No errors.</div>'}</div>`}
+function renderCoaching(rows){teamCoaching.innerHTML=TEAM_CONFIG.map(t=>focusBlock(t.name,rows.filter(r=>r.team===t.name))).join("");processorCoaching.innerHTML=entries(counts(rows,"processor")).map(([p])=>focusBlock(`${p} • ${teamForProcessor(p)}`,rows.filter(r=>r.processor===p))).join("")}
+function recurringPatterns(rows){const m={};rows.forEach(r=>(m[r.processor+"|||"+r.primary_theme]??=[]).push(r));return Object.entries(m).filter(([k,v])=>v.length>=2).map(([k,v])=>{const[a,b]=k.split("|||");return{processor:a,theme:b,count:v.length,projects:[...new Set(v.map(r=>r.project_id))]}}).sort((a,b)=>b.count-a.count)}
+function renderRepeatAlerts(rows){const p=recurringPatterns(rows);repeatAlertSummary.innerHTML=[["Recurring Patterns",p.length],["Processors Affected",new Set(p.map(x=>x.processor)).size],["Top Repeat Count",p[0]?.count||0]].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">same processor + same theme</div></div>`).join("");repeatAlerts.innerHTML=p.map((x,i)=>`<div class="alert-card"><b>${i+1}. ${esc(x.processor)} • ${esc(x.theme)}</b><div class="note">${esc(teamForProcessor(x.processor))} • ${x.count} records • Projects: ${x.projects.map(esc).join(", ")}</div><button class="btn" style="margin-top:8px" data-drill-kind="processor-theme" data-processor="${esc(x.processor)}" data-theme="${esc(x.theme)}">View records</button></div>`).join("")||`<div class="empty">No recurring pattern.</div>`}
+function themeOptions(current,auto=true){return(auto?`<option value="AUTO">Use Auto Theme</option>`:"")+PRIMARY_THEMES.filter(x=>x!=="Needs Review / Unclassified").map(t=>`<option value="${esc(t)}" ${t===current?"selected":""}>${esc(t)}</option>`).join("")}
+function reviewCard(r,idx){return`<div class="review-item" data-review-index="${idx}"><div><b>Project ${esc(r.project_id)}</b> <span class="badge">${esc(r.processor)}</span> <span class="badge">${esc(r.primary_theme)}</span></div><div class="note" style="margin-top:6px">${esc(r.details)}</div><div class="note">Auto: ${esc(r.auto_theme)} • Reviewer: ${esc(r.reviewer)}</div><div style="margin-top:8px"><select class="select review-theme">${themeOptions(r.final_theme||r.primary_theme,true)}</select> <button class="btn primary review-save">Save Theme</button></div></div>`}
+function renderThemeReview(rows){themeReviewRows=rows;const q=rows.filter(r=>r.primary_theme==="Needs Review / Unclassified");reviewQueue.innerHTML=q.map(r=>reviewCard(r,rows.indexOf(r))).join("")||`<div class="callout">✓ No unclassified records.</div>`;renderOverrideSearch()}
+function renderOverrideSearch(){const q=(overrideSearch.value||"").toLowerCase().trim();let rs=themeReviewRows.filter(r=>!q||(r.project_id+" "+r.processor+" "+r.reviewer+" "+r.details+" "+r.primary_theme).toLowerCase().includes(q));overrideResults.innerHTML=rs.slice(0,30).map(r=>reviewCard(r,themeReviewRows.indexOf(r))).join("")||`<div class="empty">No matching records.</div>`}
+async function saveReviewCard(card){if(!requireDb())return;const r=themeReviewRows[Number(card.dataset.reviewIndex)];if(!r)return;const v=card.querySelector(".review-theme").value,finalTheme=v==="AUTO"?null:v;const {error}=await db.from("errors").update({final_theme:finalTheme,updated_at:new Date().toISOString(),updated_by:r.reviewer||""}).eq("id",r.id);if(error)alert("Theme update failed: "+error.message);else await refreshSharedData(true)}
+
+function renderTeams(rows){teamProfiles.innerHTML=TEAM_CONFIG.map(t=>`<div class="teamcard"><div class="teamname">${esc(t.name)}</div><div class="lead">Lead: ${t.lead}</div><div>${t.processors.map(p=>`<span class="badge">${p}</span>`).join("")}</div><div class="insight"><b>Selected errors</b>${rows.filter(r=>r.team===t.name).length}</div></div>`).join("");const themes=[...new Set(rows.map(r=>r.primary_theme))].sort();let h=`<thead><tr><th>Team</th>${themes.map(t=>`<th>${esc(t)}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;TEAM_CONFIG.forEach(t=>{const rs=rows.filter(r=>r.team===t.name);h+=`<tr><td><b>${esc(t.name)}</b></td>`;let total=0;themes.forEach(th=>{const n=rs.filter(r=>r.primary_theme===th).length;total+=n;h+=`<td><button class="drill-btn" ${n?`data-drill-kind="team-theme" data-team="${esc(t.name)}" data-theme="${esc(th)}"`:"disabled"}><span class="heat" style="background:rgba(79,99,216,${n?Math.min(.38,.07+n*.035):.03})">${n||"—"}</span></button></td>`});h+=`<td><button class="drill-btn" ${total?`data-drill-kind="team-all" data-team="${esc(t.name)}"`:"disabled"}><b>${total}</b></button></td></tr>`});teamMatrix.innerHTML=h+"</tbody>"}
+function renderProcessors(rows){const e=entries(counts(rows,"processor")),mx=Math.max(1,...e.map(x=>x[1]));processorDetail.innerHTML=e.map(([p,n],i)=>{const top=entries(counts(rows.filter(r=>r.processor===p),"primary_theme")).slice(0,3);return`<div class="focus"><div class="name">${i+1}. ${esc(p)} <span class="badge">${esc(teamForProcessor(p))}</span></div><div class="note">${n} errors</div><div class="track"><div class="fill" style="width:${n/mx*100}%"></div></div><div>${top.map(x=>`<span class="badge">${esc(x[0])}: ${x[1]}</span>`).join("")}</div></div>`}).join("");const themes=[...new Set(rows.map(r=>r.primary_theme))].sort();let h=`<thead><tr><th>Processor</th>${themes.map(t=>`<th>${esc(t)}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;e.forEach(([p])=>{const rs=rows.filter(r=>r.processor===p);h+=`<tr><td><b>${esc(p)}</b><div class="note">${esc(teamForProcessor(p))}</div></td>`;let total=0;themes.forEach(th=>{const n=rs.filter(r=>r.primary_theme===th).length;total+=n;h+=`<td><button class="drill-btn" ${n?`data-drill-kind="processor-theme" data-processor="${esc(p)}" data-theme="${esc(th)}"`:"disabled"}><span class="heat" style="background:rgba(124,77,255,${n?Math.min(.38,.07+n*.035):.03})">${n||"—"}</span></button></td>`});h+=`<td><button class="drill-btn" ${total?`data-drill-kind="processor-all" data-processor="${esc(p)}"`:"disabled"}><b>${total}</b></button></td></tr>`});processorMatrix.innerHTML=h+"</tbody>"}
+function renderReviewers(rows){bars(counts(rows,"reviewer"),"reviewerBars",rows.length)}
+function renderDistribution(rows){const c=counts(rows,"dist_type");bars(c,"distBars",rows.length);distSignals.innerHTML=entries(c).slice(0,5).map(([d,n],i)=>`<div class="insight"><b>${i+1}. ${esc(d)}</b>${n} errors • ${(n/(rows.length||1)*100).toFixed(1)}%</div>`).join("")}
+function renderRepeats(rows){const g=repeatGroups(rows);repeatKpis.innerHTML=[["Repeated IDs",Object.keys(g).length],["Rows on repeated IDs",Object.values(g).flat().length],["Single-row projects",new Set(rows.map(r=>r.project_id)).size-Object.keys(g).length]].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">current selection</div></div>`).join("");repeatList.innerHTML=Object.entries(g).map(([pid,rs])=>`<div class="insight"><b>Project ${esc(pid)} — ${rs.length} records</b>${rs.map(r=>`<div style="margin-top:5px"><span class="badge">${esc(r.processor)}</span><span class="badge">${esc(r.primary_theme)}</span>${esc(r.details)}</div>`).join("")}</div>`).join("")||`<div class="empty">No repeated Project IDs.</div>`}
+function updateRegisterDeleteToolbar(){
+ const count=selectedRegisterIds.size;
+ registerSelectionCount.textContent=`${count} selected`;
+ deleteSelectedBtn.disabled=count===0;
+}
+function renderRegister(rows){
+ const q=(search.value||"").toLowerCase().trim();
+ const rs=rows.filter(r=>!q||(r.project_id+" "+r.details+" "+r.dist_type+" "+r.processor+" "+r.reviewer+" "+r.team).toLowerCase().includes(q));
+ registerVisibleRows=rs;
+ const existingIds=new Set(allRows().map(r=>r.id));
+ [...selectedRegisterIds].forEach(id=>{if(!existingIds.has(id))selectedRegisterIds.delete(id)});
+ shown.textContent=`Showing ${rs.length} of ${rows.length}`;
+ registerTable.innerHTML=`<thead><tr><th style="width:42px"><input type="checkbox" id="registerHeaderCheck" class="register-select" title="Select all visible"></th><th>Project</th><th>Date/Month</th><th>Team</th><th>Distribution</th><th>Processor</th><th>Reviewer</th><th>Theme</th><th>Error Detail</th><th>Source</th><th>Action</th></tr></thead><tbody>${rs.map(r=>`<tr><td><input type="checkbox" class="register-select register-row-check" data-id="${esc(r.id)}" ${selectedRegisterIds.has(r.id)?"checked":""}></td><td><b>${esc(r.project_id)}</b></td><td>${esc(r.date||r.month)}</td><td>${esc(r.team)}</td><td>${esc(r.dist_type)}</td><td>${esc(r.processor)}</td><td>${esc(r.reviewer)}</td><td><span class="badge">${esc(r.primary_theme)}</span></td><td>${esc(r.details)}</td><td>${esc(r.source)}</td><td><button class="btn danger register-delete-one" data-id="${esc(r.id)}">Delete</button></td></tr>`).join("")}</tbody>`;
+ const header=document.getElementById("registerHeaderCheck");
+ if(header){
+   const visibleIds=rs.map(r=>r.id);
+   header.checked=visibleIds.length>0&&visibleIds.every(id=>selectedRegisterIds.has(id));
+   header.indeterminate=visibleIds.some(id=>selectedRegisterIds.has(id))&&!header.checked;
+ }
+ updateRegisterDeleteToolbar();
+}
+async function secureDeleteRows(ids,label="selected entries"){
+ if(!requireDb()||!ids.length)return false;const password=prompt(`Enter delete password to permanently delete ${label}:`);if(password===null)return false;if(!confirm(`Permanently delete ${ids.length} shared database entr${ids.length===1?"y":"ies"}? This cannot be undone.`))return false;
+ try{const {data,error}=await db.rpc("secure_delete_errors",{p_ids:ids,p_password:password});if(error)throw error;selectedRegisterIds.clear();await refreshSharedData(true);alert(`${data??ids.length} entr${(data??ids.length)===1?"y":"ies"} deleted permanently.`);return true}catch(e){alert("Delete failed: "+(e.message||e));return false}
+}
+async function secureDeleteAllExistingData(){
+ if(!requireDb())return;const password=prompt("Enter delete password to permanently delete ALL shared error entries:");if(password===null)return;if(!confirm("Delete ALL shared error entries? This cannot be undone."))return;
+ try{deleteAllStatus.textContent="Deleting all shared error entries…";const {data,error}=await db.rpc("secure_delete_all_errors",{p_password:password});if(error)throw error;selectedRegisterIds.clear();await refreshSharedData(true);deleteAllStatus.textContent=`Completed. ${data??0} shared error row(s) deleted.`}catch(e){deleteAllStatus.textContent="Delete all failed: "+(e.message||e)}
+}
+
+
+function todayLocal(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function displayDate(iso){const m=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1]}`:iso||""}
+function parseEntryDate(v){const s=String(v||"").trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(y,mo-1,d);if(dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d)return`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`}m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);if(m){const d=+m[1],mo=+m[2],y=+m[3],dt=new Date(y,mo-1,d);if(dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d)return`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`}return null}
+function quickRowHTML(v={}){const ps=activeProcessors().map(p=>p.initial),ds=activeDistributionNames(),revs=activeReviewers().map(r=>r.initial);if(v.processor&&!ps.includes(v.processor))ps.push(v.processor);if(v.dist_type&&!ds.includes(normalizeDist(v.dist_type)))ds.push(normalizeDist(v.dist_type));if(v.reviewer&&!revs.includes(v.reviewer))revs.push(v.reviewer);return`<tr class="quick-entry-row" data-db-id="${esc(v.id||"")}"><td><input class="q-date" value="${esc(v.date?displayDate(v.date):displayDate(todayLocal()))}" placeholder="DD/MM/YYYY"></td><td><input class="q-project" value="${esc(v.project_id||"")}"></td><td><select class="q-dist"><option value="">Select…</option>${ds.map(x=>`<option value="${esc(x)}" ${normalizeDist(v.dist_type)===x?"selected":""}>${esc(x)}</option>`).join("")}</select></td><td><select class="q-proc"><option value="">Select…</option>${ps.map(p=>`<option value="${p}" ${v.processor===p?"selected":""}>${p}</option>`).join("")}</select></td><td><input class="q-team team-auto" value="${esc(v.processor?teamForProcessor(v.processor):"")}" readonly></td><td><select class="q-reviewer"><option value="">Select…</option>${revs.map(r=>`<option value="${esc(r)}" ${v.reviewer===r?"selected":""}>${esc(r)}</option>`).join("")}</select></td><td><select class="q-theme"><option value="AUTO">Auto Theme</option>${PRIMARY_THEMES.filter(x=>x!=="Needs Review / Unclassified").map(t=>`<option value="${esc(t)}" ${v.final_theme===t?"selected":""}>${esc(t)}</option>`).join("")}</select></td><td><input class="q-details" value="${esc(v.details||"")}" placeholder="What was wrong?"></td></tr>`}
+function addQuickRows(n=1,v=null){if(v){quickLogBody.insertAdjacentHTML("beforeend",quickRowHTML(v));return}for(let i=0;i<n;i++)quickLogBody.insertAdjacentHTML("beforeend",quickRowHTML())}
+function ensureQuickRows(){if(!quickLogBody.children.length)addQuickRows(1)}
+function rowValues(row){return{id:row.dataset.dbId||"",dateText:row.querySelector(".q-date").value.trim(),project_id:row.querySelector(".q-project").value.trim(),dist_type:normalizeDist(row.querySelector(".q-dist").value),processor:row.querySelector(".q-proc").value.trim().toUpperCase(),reviewer:row.querySelector(".q-reviewer").value.trim().toUpperCase(),final_theme:row.querySelector(".q-theme").value==="AUTO"?"":row.querySelector(".q-theme").value,details:row.querySelector(".q-details").value.trim()}}
+function rowIsBlank(v){return!v.project_id&&!v.dist_type&&!v.processor&&!v.reviewer&&!v.details}
+function clearQuickFieldErrors(row){row.querySelectorAll("td.missing-cell").forEach(td=>td.classList.remove("missing-cell"));row.classList.remove("row-error")}
+function markQuickMissing(row,selector){const el=row.querySelector(selector);if(!el)return;const td=el.closest("td");if(td)td.classList.add("missing-cell");el.setAttribute("aria-invalid","true")}
+function clearQuickFieldMarker(el){if(!el)return;const td=el.closest("td");if(td)td.classList.remove("missing-cell");el.removeAttribute("aria-invalid")}
+async function saveQuickRows(){
+ if(!requireDb())return;
+ const rows=[...quickLogBody.querySelectorAll("tr")],prepared=[],errs=[];
+ rows.forEach((row,i)=>{
+   clearQuickFieldErrors(row);const v=rowValues(row);if(rowIsBlank(v))return;const iso=parseEntryDate(v.dateText),missing=[];
+   if(!iso){missing.push("Date");markQuickMissing(row,".q-date")}if(!v.project_id){missing.push("Project ID");markQuickMissing(row,".q-project")}if(!v.dist_type){missing.push("Distribution");markQuickMissing(row,".q-dist")}if(!v.processor){missing.push("Processor");markQuickMissing(row,".q-proc")}if(!v.reviewer){missing.push("Reviewer");markQuickMissing(row,".q-reviewer")}if(!v.details){missing.push("Error Details");markQuickMissing(row,".q-details")}
+   if(missing.length){row.classList.add("row-error");errs.push(`Row ${i+1}: ${missing.join(", ")}`);return}
+   const auto=themeFor(v.details),payload={error_date:iso,report_month:iso.slice(0,7),project_id:v.project_id,distribution_type:v.dist_type,processor:v.processor,reviewer:v.reviewer,team:teamForProcessor(v.processor),details:v.details,auto_theme:auto,final_theme:v.final_theme||null,source:"Log Entry",source_file:"",created_by:v.reviewer,updated_by:v.reviewer,updated_at:new Date().toISOString()};payload.fingerprint=fingerprint(payload);prepared.push({id:v.id,payload})
+ });
+ if(errs.length){quickSaveMessage.innerHTML=`<span style="color:#b42318;font-weight:900">⚠ Missing required field(s).</span> ${esc(errs.join(" • "))}`;return}
+ if(!prepared.length){quickSaveMessage.textContent="Enter at least one row.";return}
+ try{
+  for(const x of prepared){if(x.id){const {error}=await db.from("errors").update(x.payload).eq("id",x.id);if(error)throw error}else{const {error}=await db.from("errors").upsert({...x.payload,created_at:new Date().toISOString(),archived:false},{onConflict:"fingerprint",ignoreDuplicates:true});if(error)throw error}}
+  quickSaveMessage.innerHTML=`<span style="color:#17623f;font-weight:900">✓ Saved</span> ${prepared.length} row(s) to shared database.`;quickLogBody.innerHTML="";addQuickRows(1);await refreshSharedData(true)
+ }catch(e){quickSaveMessage.textContent="Save failed: "+(e.message||e)}
+}
+function renderLogSection(){ensureQuickRows();const logs=allRows().filter(r=>r.source==="Log Entry").sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.created_at).localeCompare(String(a.created_at))),today=todayLocal(),trs=logs.filter(r=>r.date===today);todayKpis.innerHTML=[["Today's Errors",trs.length],["Projects",new Set(trs.map(r=>r.project_id)).size],["Processors",new Set(trs.map(r=>r.processor)).size],["Teams",new Set(trs.map(r=>r.team)).size]].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">shared database</div></div>`).join("");bars(counts(trs,"team"),"todayTeamBars",trs.length);bars(counts(trs,"primary_theme"),"todayThemeBars",trs.length);logTable.innerHTML=`<thead><tr><th>Date</th><th>Project</th><th>Team</th><th>Distribution</th><th>Processor</th><th>Reviewer</th><th>Theme</th><th>Details</th><th>Action</th></tr></thead><tbody>${logs.slice(0,300).map(r=>`<tr><td>${esc(displayDate(r.date))}</td><td><b>${esc(r.project_id)}</b></td><td>${esc(r.team)}</td><td>${esc(r.dist_type)}</td><td>${esc(r.processor)}</td><td>${esc(r.reviewer)}</td><td><span class="badge">${esc(r.primary_theme)}</span></td><td>${esc(r.details)}</td><td><button class="btn" onclick="editLog(\'${r.id}\')">Edit</button></td></tr>`).join("")}</tbody>`}
+function editLog(id){const r=allRows().find(x=>x.id===id);if(!r)return;quickLogBody.innerHTML="";addQuickRows(1,r);quickSaveMessage.textContent=`Editing Project ${r.project_id}. Save Entry to update the shared record.`;document.querySelector('[data-page="log"]').click()}
+
+function canonicalHeader(h){return String(h||"").toLowerCase().replace(/[^a-z0-9]/g,"")}
+function mapRow(obj,forcedTeam,month,sourceFile){const m={};Object.keys(obj).forEach(k=>m[canonicalHeader(k)]=obj[k]);const pick=keys=>{for(const k of keys)if(m[k]!==undefined&&m[k]!==null&&String(m[k]).trim()!=="")return m[k];return""};const project=pick(["projectid","project","id"]),dist=pick(["disttype","distributiontype","distribution","dist"]),proc=pick(["processorinitial","processor","processorinitials"]),rev=pick(["reviewerinitial","reviewer","reviewerinitials"]),details=pick(["details","detail","errordetails","error","comments","comment","description"]);if(!project&&!proc&&!details)return null;const p=String(proc||"").trim().toUpperCase(),team=forcedTeam==="FULL"?teamForProcessor(p):forcedTeam,auto=themeFor(details);const payload={error_date:null,report_month:month,project_id:String(project).trim(),distribution_type:normalizeDist(dist),processor:p,reviewer:String(rev||"").trim().toUpperCase(),team,details:String(details||"").trim(),auto_theme:auto,final_theme:null,source:forcedTeam==="FULL"?"Full Team Upload":"Team Upload",source_file:sourceFile,created_by:String(rev||"").trim().toUpperCase(),updated_by:String(rev||"").trim().toUpperCase()};payload.fingerprint=fingerprint(payload);return payload}
+function parseCSV(text){const rows=[];let row=[],cell="",q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c=='"'){if(q&&n=='"'){cell+='"';i++}else q=!q}else if(c==","&&!q){row.push(cell);cell=""}else if((c=="\n"||c=="\r")&&!q){if(c=="\r"&&n=="\n")i++;row.push(cell);rows.push(row);row=[];cell=""}else cell+=c}if(cell||row.length){row.push(cell);rows.push(row)}const headers=(rows.shift()||[]).map(x=>x.trim());return rows.filter(r=>r.some(x=>String(x).trim())).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])))}
+async function readTabular(file){if(file.name.toLowerCase().endsWith(".csv"))return parseCSV(await file.text());if(typeof XLSX==="undefined")throw new Error("Excel parser failed to load. Save as CSV or check internet.");const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:"array"}),ws=wb.Sheets[wb.SheetNames[0]];return XLSX.utils.sheet_to_json(ws,{defval:""})}
+
+function backupPick(obj,keys){
+ const m={};Object.keys(obj||{}).forEach(k=>m[canonicalHeader(k)]=obj[k]);
+ for(const k of keys){const v=m[k];if(v!==undefined&&v!==null&&String(v).trim()!=="")return v}
+ return""
+}
+function mapErrorBackupRow(obj,fileName){
+ const project=backupPick(obj,["projectid","project","id"]);
+ const rawDate=backupPick(obj,["date","errordate"]);
+ const rawMonth=backupPick(obj,["month","reportmonth","reportingmonth"]);
+ const dist=backupPick(obj,["distributiontype","disttype","distribution","dist"]);
+ const proc=String(backupPick(obj,["processor","processorinitial","processorinitials"])||"").trim().toUpperCase();
+ const rev=String(backupPick(obj,["reviewer","reviewerinitial","reviewerinitials"])||"").trim().toUpperCase();
+ const team=String(backupPick(obj,["team","teamname"])||"").trim()||teamForProcessor(proc);
+ const details=String(backupPick(obj,["details","detail","errordetails","error","comments","comment","description"])||"").trim();
+ const primary=String(backupPick(obj,["primarytheme","theme","errortheme"])||"").trim();
+ const source=String(backupPick(obj,["source"])||"").trim()||"Backup CSV Restore";
+ if(!project&&!proc&&!details)return null;
+ let iso=parseEntryDate(rawDate);
+ if(!iso&&/^\d{4}-\d{2}-\d{2}$/.test(String(rawDate||"").trim()))iso=String(rawDate).trim();
+ const month=(iso?iso.slice(0,7):String(rawMonth||"").trim().slice(0,7))||"";
+ const auto=themeFor(details);
+ const payload={
+   error_date:iso||null,report_month:month,project_id:String(project||"").trim(),
+   distribution_type:normalizeDist(dist),processor:proc,reviewer:rev,team,details,
+   auto_theme:auto,final_theme:primary||null,source,source_file:fileName||"error_backup.csv",
+   created_by:rev,updated_by:rev,created_at:new Date().toISOString(),
+   updated_at:new Date().toISOString(),archived:false
+ };
+ payload.fingerprint=fingerprint(payload);
+ return payload
+}
+function downloadFullErrorBackup(){
+ const rows=allRows().slice().sort((a,b)=>String(a.date||a.month).localeCompare(String(b.date||b.month))||String(a.project_id).localeCompare(String(b.project_id)));
+ exportRowsCSV(rows,`Quality_IQ_FULL_ERROR_BACKUP_${todayLocal()}.csv`);
+ backupErrorStatus.textContent=`Downloaded ${rows.length} current shared error row(s).`;
+}
+async function importErrorBackupCsv(){
+ if(!requireDb())return;
+ const file=backupErrorFile?.files?.[0];
+ if(!file){backupErrorStatus.textContent="Choose an error backup CSV first.";return}
+ try{
+   backupErrorStatus.textContent="Reading backup CSV…";
+   const raw=await readTabular(file);
+   const parsed=raw.map(x=>mapErrorBackupRow(x,file.name)).filter(Boolean);
+   if(!parsed.length)throw new Error("No usable error rows found in this CSV.");
+   const existing=new Set(allRows().map(r=>fingerprint(r)).filter(Boolean));
+   const seen=new Set(),toInsert=[];let duplicates=0;
+   for(const p of parsed){
+     const fp=p.fingerprint;
+     if((fp&&existing.has(fp))||(fp&&seen.has(fp))){duplicates++;continue}
+     if(fp)seen.add(fp);
+     toInsert.push(p)
+   }
+   let inserted=0;
+   for(let i=0;i<toInsert.length;i+=200){
+     const chunk=toInsert.slice(i,i+200);
+     const {error}=await db.from("errors").insert(chunk);
+     if(error)throw error;
+     inserted+=chunk.length
+   }
+   await refreshSharedData(true);
+   backupErrorStatus.innerHTML=`<span style="color:#17623f;font-weight:900">✓ Restore complete.</span> Imported: ${inserted} • Duplicate Skipped: ${duplicates} • Parsed: ${parsed.length}`;
+ }catch(e){
+   backupErrorStatus.innerHTML=`<span style="color:#b42318;font-weight:900">Import failed:</span> ${esc(e.message||e)}`;
+ }
+}
+
+async function uploadDataset(mode,idx){if(!requireDb())return;const full=mode==="FULL",month=document.getElementById(full?"fullMonth":"m"+idx).value,input=document.getElementById(full?"fullFile":"f"+idx),status=document.getElementById(full?"fullStatus":"s"+idx),file=input.files[0];if(!month){status.textContent="Select reporting month.";return}if(!file){status.textContent="Choose file.";return}try{status.textContent="Parsing…";const raw=await readTabular(file),parsed=raw.map(x=>mapRow(x,mode,month,file.name)).filter(Boolean);if(!parsed.length)throw new Error("No usable rows.");for(let i=0;i<parsed.length;i+=250){const chunk=parsed.slice(i,i+250).map(p=>({...p,archived:false,updated_at:new Date().toISOString()}));const {error}=await db.from("errors").upsert(chunk,{onConflict:"fingerprint",ignoreDuplicates:true});if(error)throw error}status.textContent=`Uploaded ${parsed.length} parsed row(s) to shared database. Duplicate fingerprints are ignored.`;await refreshSharedData(true)}catch(e){status.textContent="Upload failed: "+(e.message||e)}}
+function renderDataCenter(){structureCards.innerHTML=sharedStore.config.teams.map(t=>{const ps=sharedStore.config.processors.filter(p=>p.teamId===t.id);return`<div class="teamcard"><div class="teamname">${esc(t.name)}</div><div class="lead">Lead: ${esc(t.lead)} • ${esc(t.status)}</div><div>${ps.map(p=>`<span class="badge">${esc(p.initial)}${p.status!=="Active"?` • ${esc(p.status)}`:""}</span>`).join("")}</div></div>`}).join("");teamUploadSlots.innerHTML=sharedStore.config.teams.filter(t=>t.status==="Active").map((t,i)=>`<div class="upload"><h3>${esc(t.name)}</h3><div class="note">Lead ${esc(t.lead)} • ${sharedStore.config.processors.filter(p=>p.teamId===t.id&&p.status==="Active").map(p=>p.initial).join(", ")}</div><input id="m${i}" type="month"><input id="f${i}" type="file" accept=".xlsx,.xls,.csv"><button class="btn primary" onclick="uploadDataset('${esc(t.name)}',${i})">Upload to Shared Database</button><div id="s${i}" class="note"></div></div>`).join("");const rows=allRows();dbSummary.innerHTML=`<div class="grid three"><div class="insight"><b>Active shared error rows</b>${rows.length}</div><div class="insight"><b>Log Entry rows</b>${rows.filter(r=>r.source==="Log Entry").length}</div><div class="insight"><b>Daily Assign cells</b>${sharedStore.assignments.length}</div></div>`}
+
+
+function assignmentTotal(month="",processor="",dist="",team="",day=""){return sharedStore.assignments.filter(a=>(!month||String(a.date).slice(0,7)===month)&&(!day||a.date===day)&&(!processor||a.processor===processor)&&(!dist||a.distribution===dist)&&(!team||a.team===team)).reduce((z,a)=>z+(Number(a.count)||0),0)}
+function qualityErrorRows(month="",processor="",dist="",team="",reviewer="",day=""){return allRows().filter(r=>(!month||r.month===month)&&(!day||r.date===day)&&(!processor||r.processor===processor)&&(!dist||r.dist_type===dist)&&(!team||r.team===team)&&(!reviewer||r.reviewer===reviewer))}
+function processorQualityRows(){let ps=processorFilter.value?[processorFilter.value]:[...new Set(sharedStore.config.processors.map(p=>p.initial).concat(allRows().map(r=>r.processor)))];if(teamFilter.value)ps=ps.filter(p=>teamForProcessor(p)===teamFilter.value||allRows().some(r=>r.processor===p&&r.team===teamFilter.value));return ps.map(p=>{const processed=assignmentTotal(monthFilter.value,p,distFilter.value,teamFilter.value,dayFilter.value),errors=qualityErrorRows(monthFilter.value,p,distFilter.value,teamFilter.value,reviewerFilter.value,dayFilter.value).length;return{processor:p,team:teamForProcessor(p),processed,errors,rate:processed?errors/processed*100:0}}).filter(x=>x.processed||x.errors).sort((a,b)=>b.processed-a.processed||a.processor.localeCompare(b.processor))}
+function distributionQualityRows(){const ds=distFilter.value?[distFilter.value]:[...new Set(sharedStore.config.distributions.map(d=>d.name).concat(allRows().map(r=>r.dist_type)))];return ds.map(d=>{const processed=assignmentTotal(monthFilter.value,processorFilter.value,d,teamFilter.value,dayFilter.value),errors=qualityErrorRows(monthFilter.value,processorFilter.value,d,teamFilter.value,reviewerFilter.value,dayFilter.value).length;return{distribution:d,processed,errors,rate:processed?errors/processed*100:0}}).filter(x=>x.processed||x.errors).sort((a,b)=>b.processed-a.processed||a.distribution.localeCompare(b.distribution))}
+function qualityTableHtml(rows,type){const key=type==="processor"?"processor":"distribution";return`<thead><tr><th>${type==="processor"?"Processor":"Distribution"}</th>${type==="processor"?"<th>Team</th>":""}<th>Processed</th><th>Errors</th><th>Error Rate</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td><b>${esc(r[key])}</b></td>${type==="processor"?`<td>${esc(r.team)}</td>`:""}<td>${r.processed}</td><td>${r.errors}</td><td><b>${r.processed?r.rate.toFixed(2)+"%":"—"}</b></td></tr>`).join(""):`<tr><td colspan="5" class="empty">No workload data.</td></tr>`}</tbody>`}
+
+function qualityAnchorMonth(){return dayFilter.value?dayFilter.value.slice(0,7):(monthFilter.value||allQualityMonths().slice(-1)[0]||todayLocal().slice(0,7))}
+function periodSpec(mode){
+ const anchor=qualityAnchorMonth(),parts=anchor.split("-").map(Number),y=parts[0],m=parts[1];
+ if(mode==="yearly")return{start:`${y}-01-01`,end:`${y}-12-31`,label:String(y)};
+ if(mode==="quarterly"){const q=Math.floor((m-1)/3)+1,sm=(q-1)*3+1,em=sm+2,last=new Date(y,em,0).getDate();return{start:`${y}-${String(sm).padStart(2,"0")}-01`,end:`${y}-${String(em).padStart(2,"0")}-${String(last).padStart(2,"0")}`,label:`Q${q} ${y}`}}
+ const last=new Date(y,m,0).getDate();return{start:`${y}-${String(m).padStart(2,"0")}-01`,end:`${y}-${String(m).padStart(2,"0")}-${String(last).padStart(2,"0")}`,label:anchor}
+}
+function dateInSpec(date,spec){return !!date&&date>=spec.start&&date<=spec.end}
+function assignmentTotalSpec(spec,processor="",dist="",team=""){return sharedStore.assignments.filter(a=>dateInSpec(a.date,spec)&&(!processor||a.processor===processor)&&(!dist||a.distribution===dist)&&(!team||a.team===team)).reduce((z,a)=>z+(Number(a.count)||0),0)}
+function errorRowsSpec(spec,processor="",dist="",team="",reviewer=""){return allRows().filter(r=>{const d=r.date||(r.month?`${r.month}-01`:"");return dateInSpec(d,spec)&&(!processor||r.processor===processor)&&(!dist||r.dist_type===dist)&&(!team||r.team===team)&&(!reviewer||r.reviewer===reviewer)})}
+function processorQualityRowsPeriod(mode){
+ const spec=periodSpec(mode);let ps=processorFilter.value?[processorFilter.value]:[...new Set(sharedStore.config.processors.map(p=>p.initial).concat(allRows().map(r=>r.processor)))];
+ if(teamFilter.value)ps=ps.filter(p=>teamForProcessor(p)===teamFilter.value||allRows().some(r=>r.processor===p&&r.team===teamFilter.value));
+ return{spec,rows:ps.map(p=>{const processed=assignmentTotalSpec(spec,p,distFilter.value,teamFilter.value),errors=errorRowsSpec(spec,p,distFilter.value,teamFilter.value,reviewerFilter.value).length;return{processor:p,team:teamForProcessor(p),processed,errors,rate:processed?errors/processed*100:0}}).filter(x=>x.processed||x.errors).sort((a,b)=>b.processed-a.processed||a.processor.localeCompare(b.processor))}
+}
+function distributionQualityRowsPeriod(mode){
+ const spec=periodSpec(mode),ds=distFilter.value?[distFilter.value]:[...new Set(sharedStore.config.distributions.map(d=>d.name).concat(allRows().map(r=>r.dist_type)))];
+ return{spec,rows:ds.map(d=>{const processed=assignmentTotalSpec(spec,processorFilter.value,d,teamFilter.value),errors=errorRowsSpec(spec,processorFilter.value,d,teamFilter.value,reviewerFilter.value).length;return{distribution:d,processed,errors,rate:processed?errors/processed*100:0}}).filter(x=>x.processed||x.errors).sort((a,b)=>b.processed-a.processed||a.distribution.localeCompare(b.distribution))}
+}
+
+function renderWorkloadQuality(){const processed=sharedStore.assignments.filter(a=>(!monthFilter.value||String(a.date).slice(0,7)===monthFilter.value)&&(!dayFilter.value||a.date===dayFilter.value)&&(!processorFilter.value||a.processor===processorFilter.value)&&(!distFilter.value||a.distribution===distFilter.value)&&(!teamFilter.value||a.team===teamFilter.value)).reduce((z,a)=>z+(Number(a.count)||0),0),errors=filteredRows().length,rate=processed?errors/processed*100:0,prows=processorQualityRows();const best=prows.filter(x=>x.processed).sort((a,b)=>a.rate-b.rate)[0],top=prows.slice().sort((a,b)=>b.processed-a.processed)[0];workloadKpis.innerHTML=[["Processed",processed,"selected period"],["Errors",errors,"selected error records"],["Error Rate",rate.toFixed(2)+"%","errors ÷ processed"],["Top Workload",top?top.processor:"—",top?top.processed+" processed":"no data"],["Lowest Rate",best?best.processor:"—",best&&best.processed?best.rate.toFixed(2)+"%":"no data"],["Assign Days",new Set(sharedStore.assignments.filter(a=>(!monthFilter.value||String(a.date).slice(0,7)===monthFilter.value)&&(!dayFilter.value||a.date===dayFilter.value)).map(a=>a.date)).size,"recorded days"]].map(x=>`<div class="card kpi"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div><div class="hint">${x[2]}</div></div>`).join("");const pperiod=processorQualityRowsPeriod(processorQualityPeriod.value||"monthly"),dperiod=distributionQualityRowsPeriod(distributionQualityPeriod.value||"monthly");
+processorQualityPeriodLabel.textContent=pperiod.spec.label;distributionQualityPeriodLabel.textContent=dperiod.spec.label;
+processorQualityTable.innerHTML=qualityTableHtml(pperiod.rows,"processor");distributionQualityTable.innerHTML=qualityTableHtml(dperiod.rows,"distribution");refreshTrendProcessorOptions();renderProcessorTrend()}
+function renderErrorRateRanking(){const rows=processorQualityRows().filter(x=>x.processed>0).sort((a,b)=>a.rate-b.rate||b.processed-a.processed);errorRateRanking.innerHTML=rows.length?rows.map((x,i)=>`<div class="rank-row"><div class="rank-pos">${ordinal(i+1)}</div><div class="rank-proc">${esc(x.processor)}</div><div><div class="note">${esc(x.team)} • ${x.processed} processed</div><div class="rank-comment">${i<3?"Strong current quality-rate position.":"Monitor workload-to-error consistency."}</div></div><div class="rank-errors">${x.rate.toFixed(2)}%</div></div>`).join(""):`<div class="empty">No assignment denominator yet.</div>`}
+function refreshTrendProcessorOptions(){const cur=trendProcessor.value||"ALL",ps=activeProcessors().map(p=>p.initial);trendProcessor.innerHTML=`<option value="ALL">All Active Processors</option>`+ps.map(p=>`<option value="${p}">${p}</option>`).join("");trendProcessor.value=ps.includes(cur)||cur==="ALL"?cur:"ALL"}
+function allQualityMonths(){return[...new Set(sharedStore.assignments.map(a=>String(a.date).slice(0,7)).concat(allRows().map(r=>r.month)).filter(Boolean))].sort()}
+function renderProcessorTrend(){const all=allQualityMonths(),selected=trendProcessor.value||"ALL";let months;if(trendShowAll)months=all;else{const end=Math.max(3,all.length-trendWindowOffset*3),start=Math.max(0,end-3);months=all.slice(start,end)}const ps=selected==="ALL"?activeProcessors().map(p=>p.initial):[selected],colors=["#4f63d8","#7c4dff","#0e7490","#b45309","#15803d","#be123c","#334155","#9333ea","#0369a1","#4d7c0f","#c2410c","#0f766e","#6d28d9","#a21caf","#1d4ed8"];let max=0;const series=ps.map((p,pi)=>({p,color:colors[pi%colors.length],vals:months.map(m=>{const a=assignmentTotal(m,p),e=qualityErrorRows(m,p).length,v=a?e/a*100:0;max=Math.max(max,v);return v})}));max=Math.max(5,Math.ceil(max/5)*5);const W=1000,H=255,L=54,R=18,T=18,B=42,x=i=>L+(months.length<=1?0:i*(W-L-R)/(months.length-1)),y=v=>T+(H-T-B)*(1-v/max);if(!months.length){processorTrendChart.innerHTML=`<div class="empty">No monthly workload data.</div>`;processorTrendLegend.innerHTML="";return}let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;for(let g=0;g<=5;g++){const v=max*g/5,yy=y(v);svg+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#e4e8ef"/><text x="5" y="${yy+4}" font-size="11" fill="#667085">${v.toFixed(0)}%</text>`}months.forEach((m,i)=>svg+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle" font-size="11" fill="#667085">${esc(m)}</text>`);series.forEach(s=>{svg+=`<polyline points="${s.vals.map((v,i)=>`${x(i)},${y(v)}`).join(" ")}" fill="none" stroke="${s.color}" stroke-width="${selected==="ALL"?1.6:3}" opacity="${selected==="ALL"?.68:1}"/>`;s.vals.forEach((v,i)=>svg+=`<circle cx="${x(i)}" cy="${y(v)}" r="${selected==="ALL"?2:4}" fill="${s.color}"><title>${s.p} • ${months[i]} • ${v.toFixed(2)}%</title></circle>`)});svg+="</svg>";processorTrendChart.innerHTML=svg;processorTrendLegend.innerHTML=series.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.p)}</span>`).join("");if(selected!=="ALL"&&months.length>=2){const a=series[0].vals,prev=a[a.length-2],cur=a[a.length-1],diff=cur-prev;trendComment.innerHTML=diff<-.01?`<span class="metric-up">Improvement:</span> ${esc(selected)} improved by ${Math.abs(diff).toFixed(2)} percentage points.`:diff>.01?`<span class="metric-down">Performance fall:</span> ${esc(selected)} increased by ${diff.toFixed(2)} percentage points.`:`<span class="metric-flat">Stable:</span> ${esc(selected)} is nearly unchanged.`}else trendComment.textContent=trendShowAll?"Showing all available months.":"Showing a 3-month cycle. Select one processor for improvement/fall commentary."}
+function renderAssign(){if(!assignDate.value)assignDate.value=todayLocal();assignDateLabel.textContent=displayDate(assignDate.value);const ps=activeProcessors(),ds=activeDistributionNames(),day=sharedStore.assignments.filter(a=>a.date===assignDate.value);let h=`<thead><tr><th>Processor</th>${ds.map(d=>`<th>${esc(d)}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;ps.forEach(p=>{let total=0;h+=`<tr><td><b>${esc(p.initial)}</b><div class="note">${esc(configTeamById(p.teamId)?.name||"")}</div></td>`;ds.forEach(d=>{const v=day.find(a=>a.processor===p.initial&&a.distribution===d)?.count||0;total+=Number(v)||0;h+=`<td><input class="assign-num" type="number" min="0" step="1" value="${v||""}" data-proc="${esc(p.initial)}" data-dist="${esc(d)}"></td>`});h+=`<td class="assign-total" data-row-total="${esc(p.initial)}">${total}</td></tr>`});h+=`</tbody>`;assignTable.innerHTML=h;
+ const total=day.reduce((z,a)=>z+(Number(a.count)||0),0),dc={};day.forEach(a=>dc[a.distribution]=(dc[a.distribution]||0)+(Number(a.count)||0));
+ assignOverallTotal.textContent=total;assignOverallMeta.textContent=displayDate(assignDate.value);
+ assignDistributionSummary.innerHTML=Object.entries(dc).sort((a,b)=>b[1]-a[1]).map(([d,n])=>`<div class="dist-chip"><b>${esc(d)}</b> — ${n}</div>`).join("")||`<span class="note">No assignment entered for this date.</span>`;
+ assignMonth.value=assignMonth.value||String(assignDate.value).slice(0,7);renderAssignMonth()}
+
+function downloadAssignDateCsv(){
+ const date=assignDate.value||todayLocal(),day=sharedStore.assignments.filter(a=>a.date===date);
+ const ds=[...new Set(activeDistributionNames().concat(day.map(a=>a.distribution)))],ps=[...new Set(activeProcessors().map(p=>p.initial).concat(day.map(a=>a.processor)))];
+ const rows=[["Date","Processor",...ds,"Total"]];
+ ps.forEach(p=>{let total=0;const vals=ds.map(d=>{const n=day.filter(a=>a.processor===p&&a.distribution===d).reduce((z,a)=>z+(Number(a.count)||0),0);total+=n;return n});rows.push([date,p,...vals,total])});
+ const grand=ds.map(d=>day.filter(a=>a.distribution===d).reduce((z,a)=>z+(Number(a.count)||0),0));rows.push([date,"OVERALL",...grand,grand.reduce((a,b)=>a+b,0)]);
+ const csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n"),a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=`Quality_IQ_Assign_${date}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)
+}
+
+async function saveAssignDay(){const date=assignDate.value;if(!date||!requireDb())return;const rows=[...assignTable.querySelectorAll(".assign-num")].map(i=>({processor:i.dataset.proc,distribution:i.dataset.dist,count:Math.max(0,parseInt(i.value||"0",10)||0)}));try{assignStatus.textContent="Saving…";const {error}=await db.rpc("quality_save_assign_day",{p_date:date,p_rows:rows});if(error)throw error;assignStatus.textContent=`Saved ${displayDate(date)} assignment counts to shared database.`;await refreshSharedData(true)}catch(e){assignStatus.textContent="Assignment save failed: "+(e.message||e)}}
+function renderAssignMonth(){const m=assignMonth.value||String(assignDate.value||todayLocal()).slice(0,7),rows=sharedStore.config.processors.map(p=>{const processed=assignmentTotal(m,p.initial),errors=qualityErrorRows(m,p.initial).length;return{processor:p.initial,team:configTeamById(p.teamId)?.name||"",processed,errors,rate:processed?errors/processed*100:0}}).filter(x=>x.processed||x.errors).sort((a,b)=>b.processed-a.processed);assignMonthlyProcessorTable.innerHTML=qualityTableHtml(rows,"processor");const ds=sharedStore.config.distributions.map(d=>{const processed=assignmentTotal(m,"",d.name),errors=qualityErrorRows(m,"",d.name).length;return{distribution:d.name,processed,errors,rate:processed?errors/processed*100:0}}).filter(x=>x.processed||x.errors).sort((a,b)=>b.processed-a.processed),mx=Math.max(1,...ds.map(x=>x.processed));assignMonthlyDistribution.innerHTML=ds.length?ds.map(x=>`<div class="bar"><div class="barhead"><span>${esc(x.distribution)}</span><span>${x.processed} • ${x.errors} errors • ${x.processed?x.rate.toFixed(2)+"%":"—"}</span></div><div class="track"><div class="fill" style="width:${x.processed/mx*100}%"></div></div></div>`).join(""):`<div class="empty">No assignment data for ${esc(m)}.</div>`}
+function renderManagement(){
+ if(!managementKpis)return;
+ const c=sharedStore.config;
+ managementKpis.innerHTML=[["Active Teams",c.teams.filter(x=>x.status==="Active").length],["Active Processors",activeProcessors().length],["Inactive / Terminated",c.processors.filter(x=>x.status!=="Active").length],["Active Dist. Types",c.distributions.filter(x=>x.status==="Active").length]].map(x=>`<div class="teamcard"><div class="note">${x[0]}</div><div style="font-size:24px;font-weight:950;margin-top:6px">${x[1]}</div></div>`).join("");
+ newProcessorTeam.innerHTML=c.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
+ manageTeamsTable.innerHTML=`<thead><tr><th>Team</th><th>Lead</th><th>Status</th><th>Members</th><th>Action</th></tr></thead><tbody>${c.teams.map(t=>`<tr data-id="${t.id}"><td><input class="mt-name" value="${esc(t.name)}"></td><td><input class="mt-lead" value="${esc(t.lead)}"></td><td><select class="mt-status"><option ${t.status==="Active"?"selected":""}>Active</option><option ${t.status==="Inactive"?"selected":""}>Inactive</option></select></td><td>${c.processors.filter(p=>p.teamId===t.id).map(p=>p.initial).join(", ")||"—"}</td><td><button class="btn primary mt-save">Save</button></td></tr>`).join("")}</tbody>`;
+ manageProcessorsTable.innerHTML=`<thead><tr><th>Initial</th><th>Name</th><th>Team</th><th>Status</th><th>Join Date</th><th>Status Date</th><th>Action</th></tr></thead><tbody>${c.processors.map(p=>`<tr data-id="${p.id}"><td><input class="mp-initial" value="${esc(p.initial)}"></td><td><input class="mp-name" value="${esc(p.name)}"></td><td><select class="mp-team">${c.teams.map(t=>`<option value="${t.id}" ${p.teamId===t.id?"selected":""}>${esc(t.name)}</option>`).join("")}</select></td><td><select class="mp-status"><option ${p.status==="Active"?"selected":""}>Active</option><option ${p.status==="Inactive"?"selected":""}>Inactive</option><option ${p.status==="Terminated"?"selected":""}>Terminated</option></select></td><td><input class="mp-join" type="date" value="${p.joinDate||""}"></td><td><input class="mp-statusdate" type="date" value="${p.statusDate||""}"></td><td><button class="btn primary mp-save">Save</button> ${p.status==="Active"?'<button class="btn small remove-from-assign mp-remove">Remove from Assign</button>':'<span class="badge">Not in Assign</span>'}</td></tr>`).join("")}</tbody>`;
+ manageDistTable.innerHTML=`<thead><tr><th>Distribution Type</th><th>Status</th><th>Historical Errors</th><th>Historical Assigned</th><th>Action</th></tr></thead><tbody>${c.distributions.map(d=>`<tr data-id="${d.id}"><td><input class="md-name" value="${esc(d.name)}"></td><td><select class="md-status"><option ${d.status==="Active"?"selected":""}>Active</option><option ${d.status==="Inactive"?"selected":""}>Inactive</option></select></td><td>${allRows().filter(r=>r.dist_type===d.name).length}</td><td>${assignmentTotal("","",d.name)}</td><td><button class="btn primary md-save">Save</button> ${d.status==="Active"?'<button class="btn small remove-from-assign md-remove">Remove from Assign</button>':'<span class="badge">Not in Assign</span>'}</td></tr>`).join("")}</tbody>`;
+ manageThemesTable.innerHTML=`<thead><tr><th>Theme</th><th>Status</th><th>Type</th><th>Historical Errors</th><th>Action</th></tr></thead><tbody>${c.themes.map(t=>`<tr data-id="${t.id}"><td>${t.system?`<b>${esc(t.name)}</b>`:`<input class="mth-name" value="${esc(t.name)}">`}</td><td>${t.system?'<span class="badge">Active</span>':`<select class="mth-status"><option ${t.status==="Active"?"selected":""}>Active</option><option ${t.status==="Inactive"?"selected":""}>Inactive</option></select>`}</td><td>${t.system?'<span class="badge">Standard</span>':'<span class="badge">Custom</span>'}</td><td>${allRows().filter(r=>r.primary_theme===t.name).length}</td><td>${t.system?'<span class="note">Protected auto theme</span>':'<button class="btn primary mth-save">Save</button>'}</td></tr>`).join("")}</tbody>`;
+ manageReviewersTable.innerHTML=`<thead><tr><th>Initial</th><th>Name</th><th>Status</th><th>Historical Findings</th><th>Action</th></tr></thead><tbody>${c.reviewers.map(r=>`<tr data-id="${r.id}"><td><input class="mr-initial" value="${esc(r.initial)}"></td><td><input class="mr-name" value="${esc(r.name)}"></td><td><select class="mr-status"><option ${r.status==="Active"?"selected":""}>Active</option><option ${r.status==="Inactive"?"selected":""}>Inactive</option></select></td><td>${allRows().filter(x=>x.reviewer===r.initial).length}</td><td><button class="btn primary mr-save">Save</button></td></tr>`).join("")}</tbody>`;
+ auditList.innerHTML=sharedStore.audit.length?sharedStore.audit.map(a=>`<div class="audit-line"><b>${esc(a.entity)} • ${esc(a.action)}</b><div>${esc(a.detail)}</div><div class="note">${new Date(a.at).toLocaleString()}</div></div>`).join(""):`<div class="empty">No management changes yet.</div>`
+}
+async function afterManagementChange(){await refreshSharedData(true);quickLogBody.innerHTML="";ensureQuickRows();refreshOptions();if(trendProcessor){const cur=trendProcessor.value;trendProcessor.innerHTML=`<option value="ALL">All Active Processors</option>`+activeProcessors().map(p=>`<option value="${esc(p.initial)}">${esc(p.initial)}</option>`).join("");if([...trendProcessor.options].some(o=>o.value===cur))trendProcessor.value=cur}render()}
+async function manageConfig(entity,action,id,payload){if(!managementSessionPassword){alert("Management System is locked.");return false}try{const {error}=await db.rpc("quality_manage_config",{p_password:managementSessionPassword,p_entity:entity,p_action:action,p_id:id||null,p_payload:payload||{}});if(error)throw error;await afterManagementChange();return true}catch(e){alert("Management update failed: "+(e.message||e));return false}}
+
+function openDrill(kind,o){const base=filteredRows();let rs=base,title="Drill-down";if(kind==="team-theme"){rs=base.filter(r=>r.team===o.team&&r.primary_theme===o.theme);title=`${o.team} × ${o.theme}`}else if(kind==="team-all"){rs=base.filter(r=>r.team===o.team);title=`${o.team} — All Errors`}else if(kind==="processor-theme"){rs=base.filter(r=>r.processor===o.processor&&r.primary_theme===o.theme);title=`${o.processor} × ${o.theme}`}else if(kind==="processor-all"){rs=base.filter(r=>r.processor===o.processor);title=`${o.processor} — All Errors`}drillRows=rs;drillTitle.textContent=title;drillMeta.textContent="Underlying shared database records";drillSearch.value="";renderDrill();drillModal.classList.add("show")}
+function renderDrill(){const q=(drillSearch.value||"").toLowerCase(),rs=drillRows.filter(r=>!q||(r.project_id+" "+r.processor+" "+r.reviewer+" "+r.details).toLowerCase().includes(q));drillSummary.innerHTML=[["Error Records",rs.length],["Unique Projects",new Set(rs.map(r=>r.project_id)).size],["Processors",new Set(rs.map(r=>r.processor)).size],["Reviewers",new Set(rs.map(r=>r.reviewer)).size]].map(x=>`<div class="drill-stat"><b>${x[1]}</b><span class="note">${x[0]}</span></div>`).join("");drillCount.textContent=`Showing ${rs.length} of ${drillRows.length}`;drillTable.innerHTML=`<thead><tr><th>Project</th><th>Processor</th><th>Reviewer</th><th>Distribution</th><th>Date/Month</th><th>Error Detail</th></tr></thead><tbody>${rs.map(r=>`<tr><td><b>${esc(r.project_id)}</b></td><td>${esc(r.processor)}</td><td>${esc(r.reviewer)}</td><td>${esc(r.dist_type)}</td><td>${esc(r.date||r.month)}</td><td>${esc(r.details)}</td></tr>`).join("")}</tbody>`}
+function exportRowsCSV(rows,name){const h=["Project ID","Date","Month","Team","Distribution Type","Processor","Reviewer","Primary Theme","Details","Source"],lines=[h,...rows.map(r=>[r.project_id,r.date,r.month,r.team,r.dist_type,r.processor,r.reviewer,r.primary_theme,r.details,r.source])].map(a=>a.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines],{type:"text/csv;charset=utf-8"}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function exportCSV(){exportRowsCSV(filteredRows(),"quality_intelligence_shared_filtered.csv")}
+function resetFilters(){[teamFilter,monthFilter,dayFilter,processorFilter,reviewerFilter,distFilter].forEach(x=>x.value="");search.value="";refreshOptions();render()}
+
+function activateManagementTab(name){
+ const b=document.querySelector(`.mgmt-tab[data-mgmt="${name}"]`);if(!b)return;
+ document.querySelectorAll(".mgmt-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".mgmt-panel").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active");const panel=document.getElementById("mgmt-"+name);if(panel)panel.classList.add("active")
+}
+function openManagementFor(name){managementRequestedTab=name;const nav=document.querySelector('[data-page="management"]');if(nav)nav.click();if(managementUnlocked)activateManagementTab(name)}
+document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.page).classList.add("active");pageTitle.textContent=b.textContent.replace(/^[^A-Za-z]+/,"").replace("🔒","").trim();if(b.dataset.page==="management"&&!managementUnlocked){managementGate.style.display="block";managementContent.classList.remove("unlocked")}window.scrollTo({top:0,behavior:"smooth"})}));
+[teamFilter,processorFilter,reviewerFilter,distFilter].forEach(x=>x.addEventListener("change",render));monthFilter.addEventListener("change",()=>{refreshOptions();render()});dayFilter.addEventListener("change",()=>{if(dayFilter.value&&monthFilter.value!==dayFilter.value.slice(0,7))monthFilter.value=dayFilter.value.slice(0,7);render()});search.addEventListener("input",()=>renderRegister(filteredRows()));overrideSearch.addEventListener("input",renderOverrideSearch);
+themeReview.addEventListener("click",e=>{const b=e.target.closest(".review-save");if(b)saveReviewCard(b.closest(".review-item"))});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-drill-kind]");if(b)openDrill(b.dataset.drillKind,{team:b.dataset.team||"",processor:b.dataset.processor||"",theme:b.dataset.theme||""})});
+drillClose.addEventListener("click",()=>drillModal.classList.remove("show"));drillModal.addEventListener("click",e=>{if(e.target===drillModal)drillModal.classList.remove("show")});drillSearch.addEventListener("input",renderDrill);drillExport.addEventListener("click",()=>exportRowsCSV(drillRows,"matrix_drilldown.csv"));
+fillTodayBtn.addEventListener("click",()=>quickLogBody.querySelectorAll(".q-date").forEach(x=>x.value=displayDate(todayLocal())));
+saveLogRowsBtn.addEventListener("click",saveQuickRows);
+quickLogBody.addEventListener("change",e=>{clearQuickFieldMarker(e.target);if(e.target.classList.contains("q-proc")){const row=e.target.closest("tr");row.querySelector(".q-team").value=teamForProcessor(e.target.value)}});quickLogBody.addEventListener("input",e=>clearQuickFieldMarker(e.target));
+registerTable.addEventListener("change",e=>{
+ if(e.target.classList.contains("register-row-check")){
+   const id=e.target.dataset.id;
+   if(e.target.checked)selectedRegisterIds.add(id);else selectedRegisterIds.delete(id);
+   renderRegister(filteredRows());
+ }else if(e.target.id==="registerHeaderCheck"){
+   registerVisibleRows.forEach(r=>e.target.checked?selectedRegisterIds.add(r.id):selectedRegisterIds.delete(r.id));
+   renderRegister(filteredRows());
+ }
+});
+registerTable.addEventListener("click",e=>{
+ const b=e.target.closest(".register-delete-one");
+ if(b){
+   const row=allRows().find(r=>r.id===b.dataset.id);
+   secureDeleteRows([b.dataset.id],row?`Project ${row.project_id}`:"this entry");
+ }
+});
+selectVisibleBtn.addEventListener("click",()=>{registerVisibleRows.forEach(r=>selectedRegisterIds.add(r.id));renderRegister(filteredRows())});
+clearSelectionBtn.addEventListener("click",()=>{selectedRegisterIds.clear();renderRegister(filteredRows())});
+deleteSelectedBtn.addEventListener("click",()=>secureDeleteRows([...selectedRegisterIds],"selected entries"));
+deleteAllDataBtn.addEventListener("click",secureDeleteAllExistingData);
+refreshDbBtn.addEventListener("click",()=>refreshSharedData(false));
+downloadFullErrorBackupBtn.addEventListener("click",downloadFullErrorBackup);
+importErrorBackupBtn.addEventListener("click",importErrorBackupCsv);
+themeToggleBtn.addEventListener("click",toggleUiTheme);processorQualityPeriod.addEventListener("change",renderWorkloadQuality);distributionQualityPeriod.addEventListener("change",renderWorkloadQuality);trendProcessor.addEventListener("change",renderProcessorTrend);trendPrevBtn.addEventListener("click",()=>{trendShowAll=false;trendWindowOffset++;renderProcessorTrend()});trendNextBtn.addEventListener("click",()=>{trendShowAll=false;trendWindowOffset=Math.max(0,trendWindowOffset-1);renderProcessorTrend()});trendLatestBtn.addEventListener("click",()=>{trendShowAll=false;trendWindowOffset=0;renderProcessorTrend()});trendAllBtn.addEventListener("click",()=>{trendShowAll=true;renderProcessorTrend()});
+assignDate.addEventListener("change",()=>{assignMonth.value=String(assignDate.value).slice(0,7);renderAssign()});assignPrevDay.addEventListener("click",()=>{const d=new Date(assignDate.value+"T00:00:00");d.setDate(d.getDate()-1);assignDate.value=d.toISOString().slice(0,10);renderAssign()});assignNextDay.addEventListener("click",()=>{const d=new Date(assignDate.value+"T00:00:00");d.setDate(d.getDate()+1);assignDate.value=d.toISOString().slice(0,10);renderAssign()});assignToday.addEventListener("click",()=>{assignDate.value=todayLocal();assignMonth.value=String(assignDate.value).slice(0,7);renderAssign()});saveAssignBtn.addEventListener("click",saveAssignDay);downloadAssignCsvBtn.addEventListener("click",downloadAssignDateCsv);assignMonth.addEventListener("change",renderAssignMonth);assignTable.addEventListener("input",e=>{if(!e.target.classList.contains("assign-num"))return;const p=e.target.dataset.proc,total=[...assignTable.querySelectorAll(".assign-num")].filter(x=>x.dataset.proc===p).reduce((z,x)=>z+(parseInt(x.value||"0",10)||0),0),cell=[...assignTable.querySelectorAll("[data-row-total]")].find(x=>x.dataset.rowTotal===p);if(cell)cell.textContent=total});
+document.getElementById("assignManageProcessorsBtn").addEventListener("click",()=>openManagementFor("processors"));document.getElementById("assignManageDistributionsBtn").addEventListener("click",()=>openManagementFor("distributions"));
+unlockManagementBtn.addEventListener("click",async()=>{
+ if(!requireDb())return;const pw=managementPassword.value;managementGateMsg.textContent="Checking…";
+ try{const {data,error}=await db.rpc("quality_management_login",{p_password:pw});if(error)throw error;if(!data){managementGateMsg.textContent="Incorrect management password.";return}managementSessionPassword=pw;managementUnlocked=true;managementGate.style.display="none";managementContent.classList.add("unlocked");managementPassword.value="";managementGateMsg.textContent="";renderManagement();if(managementRequestedTab){activateManagementTab(managementRequestedTab);managementRequestedTab=""}}catch(e){managementGateMsg.textContent="Unlock failed: "+(e.message||e)}
+});
+lockManagementBtn.addEventListener("click",()=>{managementUnlocked=false;managementSessionPassword="";managementGate.style.display="block";managementContent.classList.remove("unlocked")});
+document.querySelectorAll(".mgmt-tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".mgmt-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".mgmt-panel").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("mgmt-"+b.dataset.mgmt).classList.add("active")}));
+addTeamBtn.addEventListener("click",async()=>{const name=newTeamName.value.trim(),lead=newTeamLead.value.trim().toUpperCase();if(!name)return;const ok=await manageConfig("team","add",null,{name,lead_initial:lead,status:newTeamStatus.value});if(ok){newTeamName.value="";newTeamLead.value=""}});
+addProcessorBtn.addEventListener("click",async()=>{const initial=newProcessorInitial.value.trim().toUpperCase();if(!initial)return;const ok=await manageConfig("processor","add",null,{initial,display_name:newProcessorName.value.trim()||initial,team_id:newProcessorTeam.value,status:newProcessorStatus.value,join_date:todayLocal(),status_date:""});if(ok){newProcessorInitial.value="";newProcessorName.value=""}});
+addDistBtn.addEventListener("click",async()=>{const name=newDistName.value.trim();if(!name)return;const ok=await manageConfig("distribution","add",null,{name,status:newDistStatus.value});if(ok)newDistName.value=""});
+addReviewerBtn.addEventListener("click",async()=>{const initial=newReviewerInitial.value.trim().toUpperCase();if(!initial)return;const ok=await manageConfig("reviewer","add",null,{initial,display_name:newReviewerName.value.trim()||initial,status:newReviewerStatus.value});if(ok){newReviewerInitial.value="";newReviewerName.value=""}});
+addThemeBtn.addEventListener("click",async()=>{const name=newThemeName.value.trim();if(!name)return;const ok=await manageConfig("theme","add",null,{name,status:newThemeStatus.value});if(ok)newThemeName.value=""});
+manageThemesTable.addEventListener("click",async e=>{if(!e.target.classList.contains("mth-save"))return;const row=e.target.closest("tr");await manageConfig("theme","update",row.dataset.id,{name:row.querySelector(".mth-name").value.trim(),status:row.querySelector(".mth-status").value})});
+manageTeamsTable.addEventListener("click",async e=>{if(!e.target.classList.contains("mt-save"))return;const row=e.target.closest("tr");await manageConfig("team","update",row.dataset.id,{name:row.querySelector(".mt-name").value.trim(),lead_initial:row.querySelector(".mt-lead").value.trim().toUpperCase(),status:row.querySelector(".mt-status").value})});
+manageProcessorsTable.addEventListener("click",async e=>{const row=e.target.closest("tr");if(!row)return;const p=sharedStore.config.processors.find(x=>x.id===row.dataset.id);if(!p)return;if(e.target.classList.contains("mp-remove")){await manageConfig("processor","update",p.id,{initial:p.initial,display_name:p.name,team_id:p.teamId,status:"Inactive",join_date:p.joinDate||"",status_date:todayLocal()});return}if(!e.target.classList.contains("mp-save"))return;await manageConfig("processor","update",p.id,{initial:row.querySelector(".mp-initial").value.trim().toUpperCase(),display_name:row.querySelector(".mp-name").value.trim(),team_id:row.querySelector(".mp-team").value,status:row.querySelector(".mp-status").value,join_date:row.querySelector(".mp-join").value,status_date:row.querySelector(".mp-statusdate").value})});
+manageDistTable.addEventListener("click",async e=>{const row=e.target.closest("tr");if(!row)return;const d=sharedStore.config.distributions.find(x=>x.id===row.dataset.id);if(!d)return;if(e.target.classList.contains("md-remove")){await manageConfig("distribution","update",d.id,{name:d.name,status:"Inactive"});return}if(!e.target.classList.contains("md-save"))return;await manageConfig("distribution","update",d.id,{name:row.querySelector(".md-name").value.trim(),status:row.querySelector(".md-status").value})});
+manageReviewersTable.addEventListener("click",async e=>{if(!e.target.classList.contains("mr-save"))return;const row=e.target.closest("tr");await manageConfig("reviewer","update",row.dataset.id,{initial:row.querySelector(".mr-initial").value.trim().toUpperCase(),display_name:row.querySelector(".mr-name").value.trim(),status:row.querySelector(".mr-status").value})});
+assignDate.value=todayLocal();assignMonth.value=String(assignDate.value).slice(0,7);
+applyUiTheme((()=>{try{return localStorage.getItem(UI_THEME_KEY)||"light"}catch(e){return"light"}})());
+connectDatabase(false).then(ok=>{if(ok){subscribeRealtime();ensureQuickRows()}});
+</script>
+</body></html>
