@@ -1014,6 +1014,27 @@ table td{font-size:11px!important;line-height:1.4}
 .assign-leave-full-row td{background:rgba(179,59,50,.035)!important}.assign-leave-short-row td{background:rgba(197,139,22,.025)!important}
 .assign-proc-leave-badge{display:inline-flex;margin-left:5px;border-radius:99px;padding:2px 5px;font-size:9px;font-weight:900}.assign-proc-leave-badge.full{color:#a6322b;background:rgba(179,59,50,.09)}.assign-proc-leave-badge.short{color:#8a650e;background:rgba(197,139,22,.10)}
 
+/* Full Register custom date-range report */
+.register-report-controls{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:10px;margin:12px 0}
+.register-report-controls label{display:grid;gap:5px;font-size:10px;font-weight:800;color:var(--muted)}
+.register-report-controls .input,.register-report-controls .select{width:100%;min-width:0}
+.register-report-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.register-date-report-output{margin-top:16px}
+.register-date-report-sheet{display:grid;gap:12px;max-width:1180px;margin:0 auto}
+.register-date-report-hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--card)}
+.register-date-report-title{font-size:18px;font-weight:950}
+.register-date-report-meta{font-size:10.5px;color:var(--muted);margin-top:4px}
+.register-date-report-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.register-date-report-kpi{border:1px solid var(--line);border-radius:9px;padding:10px;background:var(--card)}
+.register-date-report-kpi span{display:block;font-size:9.5px;color:var(--muted);font-weight:800}
+.register-date-report-kpi b{display:block;font-size:18px;margin-top:4px}
+.register-date-report-card{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--card)}
+.register-date-report-card h3{font-size:13px;margin:0 0 9px}
+.register-date-report-table{width:100%;border-collapse:collapse;font-size:10px}
+.register-date-report-table th,.register-date-report-table td{border:1px solid var(--line);padding:6px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.register-date-report-table th{background:var(--bg);font-weight:900}
+@media(max-width:850px){.register-report-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.register-date-report-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.register-date-report-hero{flex-direction:column}}
+@media print{.register-date-report-sheet{max-width:none!important;gap:8px!important}.register-date-report-hero,.register-date-report-card,.register-date-report-kpi{break-inside:avoid}.register-date-report-table thead{display:table-header-group}}
 /* Processor report */
 .processor-report-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.processor-report-actions .select,.processor-report-actions .input{min-width:120px}
 .processor-report-output{margin-top:14px}.processor-report-bulk{display:grid;gap:18px}.processor-report-bulk-head{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--card)}.processor-report-bulk-head h2{margin:0 0 4px}.processor-report-bulk-head p{margin:0;color:var(--muted);font-size:10px}.processor-report-bulk .processor-report-sheet{display:grid;gap:12px}.processor-report-bulk .processor-report-sheet + .processor-report-sheet{border-top:2px solid var(--line);padding-top:18px}
@@ -2611,7 +2632,20 @@ body.dark #instructions .ri-toolbar,body.dark #instructions .ri-kpi,body.dark #i
   <h2>Full Shared Error Register</h2>
   <div class="desc">Delete actions are password protected and permanently remove the selected database row(s).</div>
   <div class="filters" style="margin-top:12px"><input id="search" class="input" placeholder="Search project ID or error text…"></div>
-  <div class="register-tools">
+  <div class="card register-date-report-builder" style="margin-top:14px">
+ <div class="section-head"><div><h2>Custom Date-Range Error Report</h2><div class="desc">Generate a full-detail error register for a selected team or processor and any date range, then print or save as PDF.</div></div></div>
+ <div class="register-report-controls">
+  <label>Report Scope<select id="registerReportScope" class="select"><option value="all">All Teams / All Errors</option><option value="team">One Team</option><option value="processor">One Processor</option></select></label>
+  <label id="registerReportTargetLabel">Team / Processor<select id="registerReportTarget" class="select" disabled><option value="">All errors</option></select></label>
+  <label>Start Date<input id="registerReportStart" class="input" type="date" required></label>
+  <label>End Date<input id="registerReportEnd" class="input" type="date" required></label>
+  <div style="display:flex;align-items:end"><button class="btn primary" id="generateRegisterDateReportBtn" type="button" style="width:100%">Generate Report</button></div>
+ </div>
+ <div class="note">Report uses each error record's saved Team and date. The date range is inclusive; records are not reassigned to a processor's current Team.</div>
+ <div class="register-report-actions"><button class="btn" id="printRegisterDateReportBtn" type="button" disabled>PDF / Print Report</button><span id="registerDateReportStatus" class="note">Choose the scope and date range, then generate the report.</span></div>
+ <div id="registerDateReportOutput" class="register-date-report-output"></div>
+</div>
+ <div class="register-tools">
    <button class="btn" id="selectVisibleBtn">Select All Visible</button>
    <button class="btn" id="clearSelectionBtn">Clear Selection</button>
    <button class="btn danger" id="deleteSelectedBtn" disabled>Delete Selected</button>
@@ -3596,6 +3630,54 @@ function updateRegisterDeleteToolbar(){
  registerSelectionCount.textContent=`${count} selected`;
  deleteSelectedBtn.disabled=count===0;
 }
+function registerReportPopulateTarget(){
+ const scope=document.getElementById("registerReportScope"),target=document.getElementById("registerReportTarget"),label=document.getElementById("registerReportTargetLabel");
+ if(!scope||!target)return;
+ const mode=scope.value||"all";
+ target.disabled=mode==="all";
+ if(label.firstChild)label.childNodes[0].textContent=mode==="team"?"Team":mode==="processor"?"Processor":"Team / Processor";
+ if(mode==="all"){target.innerHTML='<option value="">All errors</option>';return}
+ const previous=target.value;
+ if(mode==="team"){
+  const names=[...new Set([...(TEAM_CONFIG||[]).filter(t=>t&&t.name&&t.status!=="Inactive").map(t=>t.name),...allRows().map(r=>String(r.team||"").trim()).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
+  target.innerHTML='<option value="">Choose a team…</option>'+names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join("");
+ }else{
+  const ps=[...new Set((sharedStore.config?.processors||[]).filter(p=>p&&(p.status||"")!=="Terminated").map(p=>p.initial||p.id||p.name).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)));
+  target.innerHTML='<option value="">Choose a processor…</option>'+ps.map(p=>'<option value="'+esc(p)+'">'+esc(p)+'</option>').join("");
+ }
+ if([...target.options].some(o=>o.value===previous))target.value=previous;
+}
+function registerReportDate(r){return String(r.date||(r.month?String(r.month).slice(0,7)+"-01":"")).slice(0,10)}
+function registerReportCount(rows,key){return Object.entries(counts(rows,key)).sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0])))}
+function generateRegisterDateReport(){
+ const scope=document.getElementById("registerReportScope"),target=document.getElementById("registerReportTarget"),startEl=document.getElementById("registerReportStart"),endEl=document.getElementById("registerReportEnd"),out=document.getElementById("registerDateReportOutput"),status=document.getElementById("registerDateReportStatus"),print=document.getElementById("printRegisterDateReportBtn");
+ const start=startEl?.value||"",end=endEl?.value||"",mode=scope?.value||"all",selected=target?.value||"";
+ if(!start||!end){status.textContent="Select both Start Date and End Date.";print.disabled=true;out.innerHTML="";return}
+ if(start>end){status.textContent="Start Date must be on or before End Date.";print.disabled=true;out.innerHTML="";return}
+ if(mode!=="all"&&!selected){status.textContent="Choose a Team or Processor for this report.";print.disabled=true;out.innerHTML="";return}
+ let rows=allRows().filter(r=>{const d=registerReportDate(r);return d&&d>=start&&d<=end});
+ if(mode==="team")rows=rows.filter(r=>String(r.team||"")===selected);
+ if(mode==="processor")rows=rows.filter(r=>String(r.processor||"").trim().toUpperCase()===selected.trim().toUpperCase());
+ rows.sort((a,b)=>registerReportDate(a).localeCompare(registerReportDate(b))||String(a.project_id||"").localeCompare(String(b.project_id||""))||String(a.processor||"").localeCompare(String(b.processor||"")));
+ const scopeLabel=mode==="all"?"All Teams / All Errors":(mode==="team"?"Team: ":"Processor: ")+selected;
+ const byProcessor=registerReportCount(rows,"processor"),byTeam=registerReportCount(rows,"team"),byDist=registerReportCount(rows,"dist_type"),byTheme=registerReportCount(rows,"primary_theme");
+ const table=(items,headA,headB)=>items.length?'<table class="register-date-report-table"><thead><tr><th>'+headA+'</th><th>Errors</th></tr></thead><tbody>'+items.map(([name,n])=>'<tr><td>'+esc(name||"Unspecified")+'</td><td>'+n+'</td></tr>').join("")+'</tbody></table>':'<div class="note">No records.</div>';
+ const detail=rows.length?'<table class="register-date-report-table"><thead><tr><th>#</th><th>Error Date</th><th>Project ID</th><th>Saved Team</th><th>Distribution</th><th>Processor</th><th>Reviewer</th><th>Primary Theme</th><th>Error Detail</th><th>Source</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(registerReportDate(r))+'</td><td>'+esc(r.project_id||"")+'</td><td>'+esc(r.team||"")+'</td><td>'+esc(r.dist_type||"")+'</td><td>'+esc(r.processor||"")+'</td><td>'+esc(r.reviewer||"")+'</td><td>'+esc(r.primary_theme||"")+'</td><td>'+esc(r.details||"")+'</td><td>'+esc(r.source||"")+'</td></tr>').join("")+'</tbody></table>':'<div class="note">No errors found for the selected scope and date range.</div>';
+ const fmtRange=d=>d?new Date(d+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"2-digit",year:"numeric"}):"—";
+ out.innerHTML='<div class="register-date-report-sheet"><div class="register-date-report-hero"><div><div class="register-date-report-title">DAILY OVERVIEW — Error Register Report</div><div class="register-date-report-meta">'+esc(scopeLabel)+' · '+esc(fmtRange(start))+' to '+esc(fmtRange(end))+'</div><div class="register-date-report-meta">Generated '+esc(fmtRange(todayLocal()))+'</div></div><div class="register-date-report-meta">Full Register · Custom Date Range</div></div><div class="register-date-report-kpis"><div class="register-date-report-kpi"><span>Total Errors</span><b>'+rows.length+'</b></div><div class="register-date-report-kpi"><span>Processors</span><b>'+byProcessor.length+'</b></div><div class="register-date-report-kpi"><span>Teams Represented</span><b>'+byTeam.length+'</b></div><div class="register-date-report-kpi"><span>Project IDs</span><b>'+new Set(rows.map(r=>String(r.project_id||"")).filter(Boolean)).size+'</b></div></div><div class="register-date-report-card"><h3>Error Breakdown by Processor</h3>'+table(byProcessor,"Processor","Errors")+'</div><div class="register-date-report-card"><h3>Error Breakdown by Team</h3>'+table(byTeam,"Team","Errors")+'</div><div class="register-date-report-card"><h3>Error Breakdown by Distribution</h3>'+table(byDist,"Distribution","Errors")+'</div><div class="register-date-report-card"><h3>Error Breakdown by Primary Theme</h3>'+table(byTheme,"Primary Theme","Errors")+'</div><div class="register-date-report-card"><h3>Full Error Register ('+rows.length+' records)</h3>'+detail+'</div></div>';
+ status.textContent=rows.length+" error record(s) found for "+scopeLabel+" between "+start+" and "+end+".";
+ print.disabled=!rows.length;
+}
+function printRegisterDateReport(){
+ const out=document.getElementById("registerDateReportOutput"),sheet=out?.querySelector(".register-date-report-sheet");
+ if(!sheet){alert("Generate the report first.");return}
+ const old=document.getElementById("registerDateReportPrintFrame");if(old)old.remove();
+ const frame=document.createElement("iframe");frame.id="registerDateReportPrintFrame";frame.setAttribute("aria-hidden","true");frame.style.position="fixed";frame.style.right="0";frame.style.bottom="0";frame.style.width="0";frame.style.height="0";frame.style.border="0";frame.style.opacity="0";document.body.appendChild(frame);
+ const doc=frame.contentDocument||frame.contentWindow.document;
+ const css=`@page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:9pt;margin:0}.register-date-report-sheet{display:grid;gap:10px}.register-date-report-hero{display:flex;justify-content:space-between;gap:16px;border:1px solid #cfd5dd;border-radius:8px;padding:12px}.register-date-report-title{font-size:17pt;font-weight:900}.register-date-report-meta{font-size:8pt;color:#555;margin-top:4px}.register-date-report-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.register-date-report-kpi{border:1px solid #d8dee8;padding:8px}.register-date-report-kpi span{display:block;font-size:8pt;color:#555}.register-date-report-kpi b{font-size:15pt}.register-date-report-card{border:1px solid #d8dee8;border-radius:6px;padding:8px;break-inside:auto}.register-date-report-card h3{font-size:10pt;margin:0 0 6px}.register-date-report-table{width:100%;border-collapse:collapse;font-size:7pt}.register-date-report-table th,.register-date-report-table td{border:1px solid #cfd5dd;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.register-date-report-table th{background:#edf1f5}.register-date-report-table thead{display:table-header-group}.register-date-report-table tr{break-inside:avoid} `;
+ doc.open();doc.write('<!doctype html><html><head><meta charset="utf-8"><title>DAILY OVERVIEW - Error Register Report</title><style>'+css+'</style></head><body>'+sheet.outerHTML+'</body></html>');doc.close();
+ setTimeout(()=>{try{frame.contentWindow.focus();frame.contentWindow.print()}catch(e){}},250);
+}
 function renderRegister(rows){
  const q=(search.value||"").toLowerCase().trim();
  const rs=rows.filter(r=>!q||(r.project_id+" "+r.details+" "+r.dist_type+" "+r.processor+" "+r.reviewer+" "+r.team).toLowerCase().includes(q));
@@ -4444,7 +4526,7 @@ document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>{
 quickTodayBtn?.addEventListener("click",()=>applyQuickGlobalDate("today"));
 quickYesterdayBtn?.addEventListener("click",()=>applyQuickGlobalDate("yesterday"));
 quickMonthBtn?.addEventListener("click",()=>applyQuickGlobalDate("month"));
-[teamFilter,processorFilter,reviewerFilter,distFilter].forEach(x=>x.addEventListener("change",()=>{registerPage=1;render()}));monthFilter.addEventListener("change",()=>{registerPage=1;monthFilterAutoValue="";refreshOptions();render()});dayFilter.addEventListener("change",()=>{registerPage=1;if(dayFilter.value&&monthFilter.value!==dayFilter.value.slice(0,7)){monthFilter.value=dayFilter.value.slice(0,7);monthFilterAutoValue=""}render()});search.addEventListener("input",()=>{registerPage=1;renderRegister(filteredRows())});overrideSearch.addEventListener("input",renderOverrideSearch);
+[teamFilter,processorFilter,reviewerFilter,distFilter].forEach(x=>x.addEventListener("change",()=>{registerPage=1;render()}));monthFilter.addEventListener("change",()=>{registerPage=1;monthFilterAutoValue="";refreshOptions();render()});dayFilter.addEventListener("change",()=>{registerPage=1;if(dayFilter.value&&monthFilter.value!==dayFilter.value.slice(0,7)){monthFilter.value=dayFilter.value.slice(0,7);monthFilterAutoValue=""}render()});search.addEventListener("input",()=>{registerPage=1;renderRegister(filteredRows())}); document.getElementById("registerReportScope")?.addEventListener("change",registerReportPopulateTarget); document.getElementById("generateRegisterDateReportBtn")?.addEventListener("click",generateRegisterDateReport); document.getElementById("printRegisterDateReportBtn")?.addEventListener("click",printRegisterDateReport);overrideSearch.addEventListener("input",renderOverrideSearch);
 setInterval(()=>{const current=todayLocal().slice(0,7);if(monthFilterAutoValue&&current!==monthFilterAutoValue&&monthFilter.value===monthFilterAutoValue){monthFilterAutoValue=current;monthFilter.value=current;refreshOptions();render()}},300000);
 registerPrevPage?.addEventListener("click",()=>{if(registerPage>1){registerPage--;renderRegister(filteredRows());registerTable.closest('.card')?.scrollIntoView({behavior:'smooth',block:'start'})}});registerNextPage?.addEventListener("click",()=>{registerPage++;renderRegister(filteredRows());registerTable.closest('.card')?.scrollIntoView({behavior:'smooth',block:'start'})});
 mobileFilterToggle.addEventListener("click",()=>{globalFilters.classList.toggle("mobile-collapsed");mobileFilterToggle.textContent=globalFilters.classList.contains("mobile-collapsed")?"☰ Show Filters":"✕ Hide Filters"});
