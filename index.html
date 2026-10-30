@@ -4647,24 +4647,55 @@ async function uploadMonthlyAwardImage(file){
  if(!monthlyAwardCanManage())return;
  const month=monthlyAwardState.month,snapshot=monthlyAwardState.snapshot,client=window.dailyOverviewGetClient?.();
  if(!month||!snapshot||!client){toast?.("Monthly award is not ready yet. Refresh and try again.",true);return}
- const chooseButton=document.getElementById("monthlyAwardImageChoose");if(chooseButton){chooseButton.disabled=true;chooseButton.textContent="Uploading…"}
+ const chooseButton=document.getElementById("monthlyAwardImageChoose");
+ if(chooseButton){chooseButton.disabled=true;chooseButton.textContent="Uploading…"}
  try{
-  toast?.("Preparing monthly award image…");
-  const imageData=await monthlyAwardCompressImage(file),awardMonth=monthlyAwardMonthDate(month);
-  toast?.("Saving monthly award image…");
-  const saved=await client.rpc("quality_set_monthly_award_image",{p_award_month:awardMonth,p_image_data:imageData});
-  if(saved.error)throw saved.error;
-  const verify=await client.from("quality_monthly_processor_awards").select("award_month,winner_image_data,updated_at").eq("award_month",awardMonth).maybeSingle();
-  if(verify.error)throw verify.error;
-  if(!verify.data?.winner_image_data)throw new Error("Image save could not be verified.");
-  monthlyAwardState.snapshot={...snapshot,winner_image_data:verify.data.winner_image_data,winner_image_path:null,updated_at:verify.data.updated_at||new Date().toISOString()};
-  monthlyAwardState.imageUrl=verify.data.winner_image_data;
+  const allowed={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"};
+  const ext=allowed[file?.type||""];
+  if(!ext)throw new Error("Please choose a JPG, PNG, or WebP image.");
+  if(file.size>5*1024*1024)throw new Error("Please choose an image smaller than 5 MB.");
+
+  const awardMonth=monthlyAwardMonthDate(month);
+  const objectPath=`${month}/winner.${ext}`;
+  toast?.("Uploading monthly award image…");
+
+  const upload=await client.storage.from("quality-monthly-awards").upload(objectPath,file,{
+   upsert:true,
+   contentType:file.type,
+   cacheControl:"3600"
+  });
+  if(upload.error)throw upload.error;
+
+  const updated=await client.from("quality_monthly_processor_awards").update({
+   winner_image_path:objectPath,
+   winner_image_data:null,
+   updated_at:new Date().toISOString()
+  }).eq("award_month",awardMonth)
+    .select("award_month,winner,second_place,third_place,min_processed,ranking_rule,winner_image_path,winner_image_data,finalized_at,finalized_by,updated_at")
+    .single();
+
+  if(updated.error){
+   try{await client.storage.from("quality-monthly-awards").remove([objectPath])}catch(_){}
+   throw updated.error;
+  }
+
+  const signed=await client.storage.from("quality-monthly-awards").createSignedUrl(objectPath,43200);
+  if(signed.error)throw signed.error;
+  if(!signed.data?.signedUrl)throw new Error("Image uploaded but preview URL could not be created.");
+
+  monthlyAwardState.snapshot=updated.data;
+  monthlyAwardState.imageUrl=signed.data.signedUrl;
   toast?.("Processor of the Month image saved successfully.");
   renderMonthlyProcessorAwards()
  }catch(error){
   console.error("Monthly award image upload failed",error);
   toast?.("Image update failed: "+(error.message||String(error)),true)
- }finally{if(chooseButton){chooseButton.disabled=false;chooseButton.textContent=monthlyAwardState.imageUrl?"Replace Image":"Import Image"}}
+ }finally{
+  if(chooseButton){
+   chooseButton.disabled=false;
+   chooseButton.textContent=monthlyAwardState.imageUrl?"Replace Image":"Import Image"
+  }
+ }
 }
 async function removeMonthlyAwardImage(){
  if(!monthlyAwardCanManage())return;
@@ -4672,9 +4703,21 @@ async function removeMonthlyAwardImage(){
  if(!snapshot||!client)return;
  if(!confirm("Remove the Processor of the Month image for this award month?"))return;
  try{
-  const removed=await client.rpc("quality_remove_monthly_award_image",{p_award_month:monthlyAwardMonthDate(month)});
-  if(removed.error)throw removed.error;
-  monthlyAwardState.snapshot={...snapshot,winner_image_data:null,winner_image_path:null,updated_at:new Date().toISOString()};
+  const path=String(snapshot.winner_image_path||"").trim();
+  const awardMonth=monthlyAwardMonthDate(month);
+  const updated=await client.from("quality_monthly_processor_awards").update({
+   winner_image_data:null,
+   winner_image_path:null,
+   updated_at:new Date().toISOString()
+  }).eq("award_month",awardMonth)
+    .select("award_month,winner,second_place,third_place,min_processed,ranking_rule,winner_image_path,winner_image_data,finalized_at,finalized_by,updated_at")
+    .single();
+  if(updated.error)throw updated.error;
+  if(path){
+   const removed=await client.storage.from("quality-monthly-awards").remove([path]);
+   if(removed.error)console.warn("Monthly award image object cleanup warning",removed.error)
+  }
+  monthlyAwardState.snapshot=updated.data;
   monthlyAwardState.imageUrl="";
   toast?.("Monthly award image removed.");
   renderMonthlyProcessorAwards()
