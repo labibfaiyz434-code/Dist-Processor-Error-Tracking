@@ -33,7 +33,7 @@ function closeModal(id){const el=q(id);if(!el)return;el.classList.remove("show")
 function setTab(name){qa(".ct-tab").forEach(b=>b.classList.toggle("active",b.dataset.ctTab===name));qa(".ct-panel").forEach(p=>p.classList.toggle("active",p.dataset.ctPanel===name))}
 function isOwner(event){return!!viewer&&event?.owner_user_id===viewer.id}
 function canEditEvent(event){return isOwner(event)&&can("chanda.create")&&["Draft","Open"].includes(event.status)}
-function canDeleteEvent(event){return!!viewer&&((isOwner(event)||event?.created_by===viewer.id)&&can("chanda.create")||can("chanda.transfer"))}
+function canDeleteEvent(event){return!!viewer&&(isOwner(event)||event?.created_by===viewer.id||can("chanda.transfer"))}
 function canTransfer(){return can("chanda.transfer")&&viewer?.role==="System Owner"}
 function eventRoster(id){return rosters.filter(x=>x.event_id===id)}
 function eventPayments(id){return payments.filter(x=>x.event_id===id)}
