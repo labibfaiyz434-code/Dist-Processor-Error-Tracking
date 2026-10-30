@@ -4621,19 +4621,64 @@ async function ensureMonthlyAwardSnapshot(month){
  }catch(error){monthlyAwardState.snapshot=null;monthlyAwardState.imageUrl="";monthlyAwardState.loaded=true;monthlyAwardState.error=error.message||String(error);console.warn("Monthly award snapshot unavailable",error)}finally{monthlyAwardState.loading=false;renderMonthlyProcessorAwards()}
 }
 async function monthlyAwardCompressImage(file){
- if(!file?.type?.startsWith("image/"))throw new Error("Choose an image file.");if(file.size>12*1024*1024)throw new Error("Choose an image smaller than 12 MB.");
- const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error("Could not read this image."));r.readAsDataURL(file)}),img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error("Could not open this image."));i.src=data});
- const side=Math.min(img.width,img.height),sx=(img.width-side)/2,sy=(img.height-side)/2,canvas=document.createElement("canvas");canvas.width=320;canvas.height=320;canvas.getContext("2d").drawImage(img,sx,sy,side,side,0,0,320,320);
- let prepared=canvas.toDataURL("image/webp",.78);if(prepared.length>180000)prepared=canvas.toDataURL("image/webp",.62);if(prepared.length>260000)throw new Error("This image is still too large after compression. Please choose a smaller image.");return prepared
+ if(!file?.type?.startsWith("image/"))throw new Error("Choose an image file.");
+ if(file.size>12*1024*1024)throw new Error("Choose an image smaller than 12 MB.");
+ let source=null,cleanup=()=>{};
+ try{
+  if("createImageBitmap" in window){try{source=await createImageBitmap(file);cleanup=()=>source?.close?.()}catch(_){}}
+  if(!source){
+   const objectUrl=URL.createObjectURL(file);cleanup=()=>URL.revokeObjectURL(objectUrl);
+   source=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error("Could not open this image. Please use JPG, PNG, or WebP."));i.src=objectUrl});
+  }
+  const width=source.width||source.naturalWidth,height=source.height||source.naturalHeight;
+  if(!width||!height)throw new Error("Could not read image dimensions.");
+  const side=Math.min(width,height),sx=(width-side)/2,sy=(height-side)/2,canvas=document.createElement("canvas");canvas.width=320;canvas.height=320;
+  const ctx=canvas.getContext("2d",{alpha:false});if(!ctx)throw new Error("Image processor is unavailable in this browser.");
+  ctx.drawImage(source,sx,sy,side,side,0,0,320,320);
+  let prepared=canvas.toDataURL("image/webp",.80);
+  if(!/^data:image\/webp;base64,/i.test(prepared))prepared=canvas.toDataURL("image/jpeg",.82);
+  if(prepared.length>180000)prepared=canvas.toDataURL("image/jpeg",.68);
+  if(prepared.length>260000)prepared=canvas.toDataURL("image/jpeg",.52);
+  if(prepared.length>290000)throw new Error("This image is still too large after compression. Please choose a smaller image.");
+  return prepared
+ }finally{try{cleanup()}catch(_){}}
 }
 async function uploadMonthlyAwardImage(file){
- if(!monthlyAwardCanManage())return;const month=monthlyAwardState.month,snapshot=monthlyAwardState.snapshot,client=window.dailyOverviewGetClient?.();if(!month||!snapshot||!client)return;
+ if(!monthlyAwardCanManage())return;
+ const month=monthlyAwardState.month,snapshot=monthlyAwardState.snapshot,client=window.dailyOverviewGetClient?.();
+ if(!month||!snapshot||!client){toast?.("Monthly award is not ready yet. Refresh and try again.",true);return}
  const input=document.getElementById("monthlyAwardImageInput");if(input)input.disabled=true;
- try{toast?.("Preparing monthly award image…");const imageData=await monthlyAwardCompressImage(file);await window.dailyOverviewAdminAction("save_monthly_award_image",{award_month:monthlyAwardMonthDate(month),image_data:imageData});monthlyAwardState.snapshot={...snapshot,winner_image_data:imageData,winner_image_path:null,updated_at:new Date().toISOString()};monthlyAwardState.imageUrl=imageData;toast?.("Processor of the Month image updated.");renderMonthlyProcessorAwards()}catch(error){toast?.("Image update failed: "+(error.message||String(error)),true)}finally{if(input)input.disabled=false}
+ try{
+  toast?.("Preparing monthly award image…");
+  const imageData=await monthlyAwardCompressImage(file),awardMonth=monthlyAwardMonthDate(month);
+  toast?.("Saving monthly award image…");
+  const saved=await client.rpc("quality_set_monthly_award_image",{p_award_month:awardMonth,p_image_data:imageData});
+  if(saved.error)throw saved.error;
+  const verify=await client.from("quality_monthly_processor_awards").select("award_month,winner_image_data,updated_at").eq("award_month",awardMonth).maybeSingle();
+  if(verify.error)throw verify.error;
+  if(!verify.data?.winner_image_data)throw new Error("Image save could not be verified.");
+  monthlyAwardState.snapshot={...snapshot,winner_image_data:verify.data.winner_image_data,winner_image_path:null,updated_at:verify.data.updated_at||new Date().toISOString()};
+  monthlyAwardState.imageUrl=verify.data.winner_image_data;
+  toast?.("Processor of the Month image saved successfully.");
+  renderMonthlyProcessorAwards()
+ }catch(error){
+  console.error("Monthly award image upload failed",error);
+  toast?.("Image update failed: "+(error.message||String(error)),true)
+ }finally{if(input)input.disabled=false}
 }
 async function removeMonthlyAwardImage(){
- if(!monthlyAwardCanManage())return;const snapshot=monthlyAwardState.snapshot,month=monthlyAwardState.month,client=window.dailyOverviewGetClient?.();if(!snapshot||!client)return;if(!confirm("Remove the Processor of the Month image for this award month?"))return;
- try{await window.dailyOverviewAdminAction("remove_monthly_award_image",{award_month:monthlyAwardMonthDate(month)});monthlyAwardState.snapshot={...snapshot,winner_image_data:null,winner_image_path:null,updated_at:new Date().toISOString()};monthlyAwardState.imageUrl="";toast?.("Monthly award image removed.");renderMonthlyProcessorAwards()}catch(error){toast?.(error.message||String(error),true)}
+ if(!monthlyAwardCanManage())return;
+ const snapshot=monthlyAwardState.snapshot,month=monthlyAwardState.month,client=window.dailyOverviewGetClient?.();
+ if(!snapshot||!client)return;
+ if(!confirm("Remove the Processor of the Month image for this award month?"))return;
+ try{
+  const removed=await client.rpc("quality_remove_monthly_award_image",{p_award_month:monthlyAwardMonthDate(month)});
+  if(removed.error)throw removed.error;
+  monthlyAwardState.snapshot={...snapshot,winner_image_data:null,winner_image_path:null,updated_at:new Date().toISOString()};
+  monthlyAwardState.imageUrl="";
+  toast?.("Monthly award image removed.");
+  renderMonthlyProcessorAwards()
+ }catch(error){toast?.("Image remove failed: "+(error.message||String(error)),true)}
 }
 function bindMonthlyAwardControls(){const stage=document.getElementById("monthlyAwardsStage");if(!stage||stage.dataset.boundMonthlyAwards==="1")return;stage.dataset.boundMonthlyAwards="1";stage.addEventListener("change",e=>{if(e.target?.id!=="monthlyAwardImageInput")return;const file=e.target.files?.[0];e.target.value="";if(file)uploadMonthlyAwardImage(file)});stage.addEventListener("click",e=>{if(e.target?.id==="monthlyAwardImageRemove")removeMonthlyAwardImage()})}
 function renderMonthlyProcessorAwards(){
