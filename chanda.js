@@ -305,4 +305,72 @@ async function saveMember(){
   if(!db||!viewer)return;
   if(!name){q("ctMemberFormMsg").textContent="Member name is required.";q("ctMemberFormMsg").classList.add("bad");return}
   if(!editMemberId&&initial&&members.some(m=>String(m.source_initial||"").toUpperCase()===initial)){q("ctMemberFormMsg").textContent="This initial / ID already exists. Edit the existing member instead.";q("ctMemberFormMsg").classList.add("bad");return}
-  const base={name,source_initial:initial||null,designation:q("ctMemberDesignation").value.trim()||null,team_name:q("ctMemberTeam").value.trim()||null,phon
+  const base={name,source_initial:initial||null,designation:q("ctMemberDesignation").value.trim()||null,team_name:q("ctMemberTeam").value.trim()||null,phone:q("ctMemberPhone").value.trim()||null,joining_date:q("ctMemberJoining").value||null,birthday:q("ctMemberBirthday").value||null,active:q("ctMemberActive").value==="true"};
+  try{
+    btn.disabled=true;btn.textContent="Saving…";
+    let error;
+    if(editMemberId)({error}=await db.from("quality_chanda_members").update(base).eq("id",editMemberId));
+    else({error}=await db.from("quality_chanda_members").insert({...base,source:"manual",created_by:viewer.id}));
+    if(error)throw error;
+    closeModal("ctMemberModal");editMemberId="";await loadData(true);notify("Member saved.");
+  }catch(error){q("ctMemberFormMsg").textContent=error.message||String(error);q("ctMemberFormMsg").classList.add("bad")}
+  finally{btn.disabled=false;btn.textContent="Save Member"}
+}
+async function toggleMember(id){
+  const m=members.find(x=>x.id===id),db=client();if(!m||!db||!can("chanda.members.manage"))return;
+  try{const {error}=await db.from("quality_chanda_members").update({active:!m.active}).eq("id",id);if(error)throw error;await loadData(true);notify(`${m.name} marked ${m.active?"Inactive":"Active"}.`)}catch(error){notify(error.message||String(error),true)}
+}
+function openPaymentForm(rosterId){
+  const roster=rosters.find(x=>x.id===rosterId),event=events.find(x=>x.id===roster?.event_id);if(!roster||!event||!canEditEvent(event))return;
+  paymentRosterId=rosterId;
+  const paid=paidForRoster(rosterId),st=paymentStatus(event,roster,paid),suggest=event.contribution_mode==="fixed"&&st.due>0?st.due:"";
+  q("ctPaymentWho").textContent=`${roster.member_initial||""} — ${roster.member_name}${event.contribution_mode==="fixed"?` • Due ${money(st.due)}`:" • Flexible contribution"}`;
+  q("ctPaymentAmount").value=suggest;q("ctPaymentDate").value=todayISO();q("ctPaymentMethod").value="Cash";q("ctPaymentNote").value="";q("ctPaymentFormMsg").textContent="";q("ctPaymentFormMsg").classList.remove("bad");openModal("ctPaymentModal");
+}
+async function savePayment(){
+  const roster=rosters.find(x=>x.id===paymentRosterId),event=events.find(x=>x.id===roster?.event_id),db=client(),btn=q("ctSavePaymentBtn"),amount=Number(q("ctPaymentAmount").value)||0;
+  if(!roster||!event||!db||!canEditEvent(event))return;
+  if(amount<=0){q("ctPaymentFormMsg").textContent="Enter a payment amount greater than zero.";q("ctPaymentFormMsg").classList.add("bad");return}
+  try{
+    btn.disabled=true;btn.textContent="Saving…";
+    const {error}=await db.from("quality_chanda_payments").insert({event_id:event.id,event_member_id:roster.id,amount,payment_date:q("ctPaymentDate").value||todayISO(),payment_method:q("ctPaymentMethod").value,note:q("ctPaymentNote").value.trim()||null,entered_by:viewer.id});
+    if(error)throw error;
+    closeModal("ctPaymentModal");paymentRosterId="";await loadData(true);notify("Payment recorded.");
+  }catch(error){q("ctPaymentFormMsg").textContent=error.message||String(error);q("ctPaymentFormMsg").classList.add("bad")}
+  finally{btn.disabled=false;btn.textContent="Save Payment"}
+}
+async function deletePayment(id){
+  const p=payments.find(x=>x.id===id),event=events.find(x=>x.id===p?.event_id),db=client();if(!p||!event||!db||!canEditEvent(event))return;
+  if(!confirm(`Delete ${money(p.amount)} payment recorded on ${fmtDate(p.payment_date)}?`))return;
+  try{const {error}=await db.from("quality_chanda_payments").delete().eq("id",id);if(error)throw error;await loadData(true);notify("Payment deleted.")}catch(error){notify(error.message||String(error),true)}
+}
+async function addExpense(){
+  const event=events.find(x=>x.id===selectedEventId),db=client();if(!event||!db||!canEditEvent(event))return;
+  const title=q("ctExpenseTitle")?.value.trim(),amount=Number(q("ctExpenseAmount")?.value)||0;
+  if(!title||amount<=0){notify("Expense title and amount are required.",true);return}
+  try{
+    const {error}=await db.from("quality_chanda_expenses").insert({event_id:event.id,title,category:null,amount,expense_date:q("ctExpenseDate").value||todayISO(),payment_method:q("ctExpenseMethod").value||null,paid_by:q("ctExpensePaidBy").value.trim()||null,note:q("ctExpenseNote").value.trim()||null,entered_by:viewer.id});
+    if(error)throw error;await loadData(true);notify("Expense added.");
+  }catch(error){notify(error.message||String(error),true)}
+}
+async function deleteExpense(id){
+  const x=expenses.find(v=>v.id===id),event=events.find(v=>v.id===x?.event_id),db=client();if(!x||!event||!db||!canEditEvent(event))return;
+  if(!confirm(`Delete expense "${x.title}" (${money(x.amount)})?`))return;
+  try{const {error}=await db.from("quality_chanda_expenses").delete().eq("id",id);if(error)throw error;await loadData(true);notify("Expense deleted.")}catch(error){notify(error.message||String(error),true)}
+}
+function pdfReady(){return !!window.jspdf?.jsPDF}
+function safeFilename(value){return String(value||"report").replace(/[^a-z0-9_-]+/gi,"_").replace(/^_+|_+$/g,"").slice(0,80)||"report"}
+function pdfHeader(doc,title,subtitle){
+  doc.setTextColor(30,41,59);doc.setFont("helvetica","bold");doc.setFontSize(15);doc.text("DAILY OVERVIEW",40,38);
+  doc.setFontSize(19);doc.text(title,40,64);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(90,100,120);doc.text(subtitle,40,80);
+  doc.setDrawColor(220,225,232);doc.line(40,91,555,91);
+}
+function addPdfFooter(doc){
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(120);doc.text(`Generated from DAILY OVERVIEW • ${new Date().toLocaleString("en-GB")}`,40,814);doc.text(`Page ${i} of ${pages}`,555,814,{align:"right"})}
+}
+function generateEventPdf(eventId){
+  const event=events.find(e=>e.id===eventId);if(!event)throw new Error("Event not found.");
+  if(!pdfReady())throw new Error("PDF library did not load. Refresh the page and try again.");
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"pt",format:"a4"});
+  const m=eventMetrics(event),person=members.find(x=>x.id===event.target_member_id),rs=eventRoster(event.id).slice().sort((a,b)=>String(a.memb
