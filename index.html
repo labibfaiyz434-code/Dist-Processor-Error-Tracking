@@ -4594,6 +4594,23 @@ function monthlyAwardRanking(month){
  return processors.map(p=>{const x=processorMonthStats(p.initial,month);return{processor:p.initial,name:p.name||p.initial,team:teamForProcessor(p.initial),processed:x.processed,errors:x.errors,rate:x.rate}}).filter(x=>x.processed>=minVol).sort((a,b)=>a.rate-b.rate||b.processed-a.processed||a.processor.localeCompare(b.processor)).slice(0,3)
 }
 const monthlyAwardState={month:"",snapshot:null,imageUrl:"",loading:false,loaded:false,error:"",animation:null,resizeObserver:null};
+function monthlyAwardNotify(message,bad=false){
+ try{
+  if(typeof window.motionToast==="function"){
+   window.motionToast(bad?"Monthly Award Error":"Monthly Award",String(message||""),bad?"error":"success",bad?4200:2600);
+   return;
+  }
+ }catch(_){}
+ try{
+  const el=document.getElementById("monthlyAwardUploadStatus");
+  if(el){
+   el.textContent=String(message||"");
+   el.classList.remove("ok","err");
+   el.classList.add(bad?"err":"ok");
+  }
+ }catch(_){}
+ if(bad)console.error(message);else console.info(message)
+}
 function monthlyAwardCanManage(){return["System Owner","Admin"].includes(window.dailyOverviewCurrentUser?.role||"")}
 function monthlyAwardMonthDate(month){return`${month}-01`}
 function monthlyAwardSnapshotRow(month,ranked){return{award_month:monthlyAwardMonthDate(month),winner:ranked[0]||null,second_place:ranked[1]||null,third_place:ranked[2]||null,min_processed:qualityMinVolume(),ranking_rule:"Previous-month Error Rate Ranking; lower eligible error rate ranks higher; tie-breaker is higher processed volume."}}
@@ -4651,7 +4668,7 @@ async function monthlyAwardCompressImage(file){
 async function uploadMonthlyAwardImage(file){
  if(!monthlyAwardCanManage())return;
  const month=monthlyAwardState.month,snapshot=monthlyAwardState.snapshot,client=window.dailyOverviewGetClient?.();
- if(!month||!snapshot||!client){toast?.("Monthly award is not ready yet. Refresh and try again.",true);return}
+ if(!month||!snapshot||!client){monthlyAwardNotify("Monthly award is not ready yet. Refresh and try again.",true);return}
  const nativeInput=document.getElementById("monthlyAwardImageNative");
  if(nativeInput)nativeInput.disabled=true;
  monthlyAwardSetUploadStatus("Uploading photo to secure storage…");
@@ -4663,7 +4680,7 @@ async function uploadMonthlyAwardImage(file){
 
   const awardMonth=monthlyAwardMonthDate(month);
   const objectPath=`${month}/winner.${ext}`;
-  toast?.("Uploading monthly award image…");
+  monthlyAwardNotify("Uploading monthly award image…");
 
   const upload=await client.storage.from("quality-monthly-awards").upload(objectPath,file,{
    upsert:true,
@@ -4692,12 +4709,12 @@ async function uploadMonthlyAwardImage(file){
   monthlyAwardState.snapshot=updated.data;
   monthlyAwardState.imageUrl=signed.data.signedUrl;
   monthlyAwardSetUploadStatus("Photo saved successfully.","ok");
-  toast?.("Processor of the Month image saved successfully.");
+  monthlyAwardNotify("Processor of the Month image saved successfully.");
   renderMonthlyProcessorAwards()
  }catch(error){
   console.error("Monthly award image upload failed",error);
   monthlyAwardSetUploadStatus("Upload failed: "+(error.message||String(error)),"err");
-  toast?.("Image update failed: "+(error.message||String(error)),true)
+  monthlyAwardNotify("Image update failed: "+(error.message||String(error)),true)
  }finally{
   if(nativeInput)nativeInput.disabled=false
  }
@@ -4724,9 +4741,9 @@ async function removeMonthlyAwardImage(){
   }
   monthlyAwardState.snapshot=updated.data;
   monthlyAwardState.imageUrl="";
-  toast?.("Monthly award image removed.");
+  monthlyAwardNotify("Monthly award image removed.");
   renderMonthlyProcessorAwards()
- }catch(error){toast?.("Image remove failed: "+(error.message||String(error)),true)}
+ }catch(error){monthlyAwardNotify("Image remove failed: "+(error.message||String(error)),true)}
 }
 function monthlyAwardSetUploadStatus(message,type=""){
  const el=document.getElementById("monthlyAwardUploadStatus");
