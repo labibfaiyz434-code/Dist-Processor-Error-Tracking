@@ -11,6 +11,8 @@
 <!-- Realtime Visible-Page Render v1: instant UI redraw using already-fetched snapshots -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{--bg:#f3f5f9;--card:#fff;--ink:#172033;--muted:#667085;--line:#e4e8ef;--nav:#0f172a;--accent:#4f63d8;--accent2:#7c4dff;--good:#127a52;--warn:#9a6300;--danger:#b42318;--shadow:0 10px 28px rgba(15,23,42,.06)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}
@@ -2421,6 +2423,58 @@ body.dark .password-reset-row{background:#171b24;border-color:#514525}
 </style>
 
 <!-- Executive Overview v14: priority strip removed, filters docked above Processor Quality, winner-only monthly note -->
+
+<style>
+/* ===== Chanda Tracker ===== */
+#chanda-tracker{--ct-blue:#3657b7;--ct-green:#16825d;--ct-gold:#b57a12;--ct-red:#b43d36}
+.ct-shell{display:grid;gap:14px;max-width:1450px;margin:0 auto}
+.ct-hero{position:relative;overflow:hidden;display:flex;justify-content:space-between;gap:18px;align-items:center;padding:23px 25px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--card)),var(--card));box-shadow:var(--shadow)}
+.ct-hero:after{content:"৳";position:absolute;right:28px;bottom:-36px;font-size:150px;font-weight:950;color:color-mix(in srgb,var(--accent) 7%,transparent);pointer-events:none}
+.ct-hero-copy,.ct-hero-actions{position:relative;z-index:1}
+.ct-kicker{font-size:9px;font-weight:950;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.ct-hero h2{font-size:25px!important;margin:4px 0 6px}.ct-hero p{margin:0;max-width:700px;color:var(--muted);font-size:11px;line-height:1.55}
+.ct-hero-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.ct-hero-actions .btn{white-space:nowrap}
+.ct-notice{padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-size:10.5px;color:var(--muted)}.ct-notice[hidden]{display:none}.ct-notice.bad{border-color:#efb1ac;color:#9d312b;background:#fff7f6}
+.ct-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.ct-stat{position:relative;overflow:hidden;padding:14px 15px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 4px 14px rgba(15,23,42,.035)}
+.ct-stat:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}.ct-stat:nth-child(2):before{background:var(--ct-green)}.ct-stat:nth-child(3):before{background:var(--ct-red)}.ct-stat:nth-child(4):before{background:var(--ct-gold)}
+.ct-stat span{display:block;color:var(--muted);font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.ct-stat b{display:block;margin-top:6px;font-size:22px;line-height:1;font-weight:950}.ct-stat small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
+.ct-tabs{display:flex;gap:5px;flex-wrap:wrap;padding:5px;border:1px solid var(--line);border-radius:11px;background:var(--card)}
+.ct-tab{border:0;border-radius:8px;background:transparent;color:var(--muted);padding:8px 11px;font-size:10px!important;font-weight:850;cursor:pointer}.ct-tab:hover{background:var(--bg);color:var(--ink)}.ct-tab.active{background:color-mix(in srgb,var(--accent) 11%,var(--card));color:var(--accent)}
+.ct-panel{display:none}.ct-panel.active{display:block}
+.ct-grid-2{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.ct-card{border:1px solid var(--line);border-radius:13px;background:var(--card);padding:15px;box-shadow:var(--shadow)}
+.ct-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}.ct-card-head h3{margin:0;font-size:13px!important}.ct-card-head p{margin:3px 0 0;color:var(--muted);font-size:10px}
+.ct-birthday-list,.ct-event-cards{display:grid;gap:8px}.ct-birthday{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg)}.ct-birthday b{font-size:10.5px}.ct-birthday span{font-size:9.5px;color:var(--muted)}.ct-birthday-date{font-weight:900!important;color:var(--accent)!important;white-space:nowrap}
+.ct-event-card{display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(4,minmax(85px,.65fr)) auto;gap:9px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--card);cursor:pointer;transition:.15s}
+.ct-event-card:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--accent) 32%,var(--line));box-shadow:0 7px 18px rgba(15,23,42,.06)}.ct-event-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 10%,transparent)}
+.ct-event-main b{display:block;font-size:12px}.ct-event-main span,.ct-event-metric span{display:block;margin-top:3px;font-size:9px;color:var(--muted)}.ct-event-metric b{display:block;font-size:11px}.ct-event-arrow{font-size:17px;color:var(--muted)}
+.ct-status{display:inline-flex;align-items:center;width:max-content;padding:3px 7px;border-radius:999px;font-size:8.5px;font-weight:900}.ct-status.open{background:rgba(22,130,93,.10);color:#147253}.ct-status.closed{background:rgba(54,87,183,.10);color:#3657b7}.ct-status.draft{background:rgba(181,122,18,.12);color:#93620d}.ct-status.cancelled{background:rgba(180,61,54,.10);color:#a13a34}
+.ct-toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px}.ct-toolbar .input,.ct-toolbar .select{min-width:150px;padding:7px 8px}.ct-toolbar-spacer{flex:1}
+.ct-event-detail-empty,.ct-empty{padding:30px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:11px;font-size:10.5px}
+.ct-detail-hero{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding:15px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 6%,var(--card)),var(--card))}
+.ct-detail-hero h3{margin:4px 0;font-size:17px!important}.ct-detail-meta{font-size:10px;color:var(--muted);line-height:1.55}.ct-detail-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.ct-event-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:10px 0}.ct-mini-stat{padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--card)}.ct-mini-stat span{display:block;font-size:8.5px;text-transform:uppercase;font-weight:850;color:var(--muted)}.ct-mini-stat b{display:block;margin-top:4px;font-size:14px}
+.ct-detail-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);gap:12px}.ct-subcard{border:1px solid var(--line);border-radius:11px;background:var(--card);padding:12px}.ct-subcard h4{margin:0 0 8px;font-size:11px}
+.ct-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:9px;max-height:560px}.ct-table{width:100%;min-width:850px;border-collapse:collapse}.ct-table th,.ct-table td{padding:8px 9px;border-bottom:1px solid var(--line);font-size:10px}.ct-table th{position:sticky;top:0;background:var(--card);z-index:1;font-size:9px;text-transform:uppercase;color:var(--muted)}.ct-table tr:last-child td{border-bottom:0}
+.ct-person b{display:block}.ct-person small{display:block;margin-top:2px;color:var(--muted);font-size:8.5px}.ct-money{font-variant-numeric:tabular-nums;font-weight:850}
+.ct-pay-status{display:inline-flex;padding:3px 6px;border-radius:999px;font-size:8px;font-weight:900}.ct-pay-status.paid{background:rgba(22,130,93,.10);color:#147253}.ct-pay-status.partial{background:rgba(181,122,18,.12);color:#91610e}.ct-pay-status.due{background:rgba(180,61,54,.10);color:#a13a34}.ct-pay-status.excluded{background:rgba(100,116,139,.12);color:var(--muted)}
+.ct-expense-form{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}.ct-expense-form .wide{grid-column:1/-1}.ct-expense-form input,.ct-expense-form select,.ct-expense-form textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:8px;font-size:10px}.ct-expense-form textarea{min-height:58px;resize:vertical}
+.ct-expense-list{display:grid;gap:7px}.ct-expense-item{display:grid;grid-template-columns:1fr auto;gap:7px;padding:8px 9px;border:1px solid var(--line);border-radius:8px}.ct-expense-item b{font-size:10px}.ct-expense-item small{display:block;color:var(--muted);font-size:8.5px;margin-top:2px}.ct-expense-item strong{font-size:10px}.ct-expense-item .btn{grid-column:2;padding:4px 6px;font-size:8px!important}
+.ct-owner-note{margin-top:8px;padding:8px 9px;border-radius:8px;background:color-mix(in srgb,var(--accent) 6%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line));font-size:9.5px;color:var(--muted)}
+.ct-member-table{min-width:1050px}.ct-member-actions{display:flex;gap:5px}.ct-member-actions .btn{padding:5px 7px;font-size:8.5px!important}
+.ct-closing-table{min-width:760px}
+.ct-modal{position:fixed;inset:0;z-index:10050;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(6,12,24,.54);backdrop-filter:blur(5px)}.ct-modal.show{display:flex}
+.ct-modal-card{width:min(720px,96vw);max-height:92vh;overflow:auto;border:1px solid var(--line);border-radius:15px;background:var(--card);box-shadow:0 26px 70px rgba(0,0,0,.24);padding:17px}
+.ct-modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.ct-modal-head h3{margin:0;font-size:15px!important}.ct-modal-head p{margin:3px 0 0;color:var(--muted);font-size:10px}.ct-close{border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.ct-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ct-form-grid label{display:flex;flex-direction:column;gap:5px;font-size:9.5px;font-weight:850}.ct-form-grid label.wide{grid-column:1/-1}.ct-form-grid input,.ct-form-grid select,.ct-form-grid textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:9px;font-size:10.5px}.ct-form-grid textarea{min-height:70px;resize:vertical}.ct-check{flex-direction:row!important;align-items:center;gap:7px!important;font-weight:750!important}.ct-check input{width:15px!important;height:15px}
+.ct-modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:13px}.ct-form-msg{margin-top:8px;font-size:9.5px;color:var(--muted)}.ct-form-msg.bad{color:#a13a34}
+.ct-transfer-box{display:flex;gap:6px;align-items:center;margin-top:8px}.ct-transfer-box .select{min-width:190px;padding:6px 8px}
+.ct-report-hint{margin-top:8px;font-size:9px;color:var(--muted)}
+body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .ct-modal-card{background:var(--card)}
+@media(max-width:1150px){.ct-stats{grid-template-columns:repeat(3,1fr)}.ct-event-card{grid-template-columns:minmax(180px,1.5fr) repeat(2,minmax(85px,.65fr)) auto}.ct-event-card .ct-event-metric:nth-of-type(n+4){display:none}.ct-detail-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.ct-hero{align-items:flex-start;flex-direction:column}.ct-hero-actions{width:100%;justify-content:flex-start}.ct-stats{grid-template-columns:repeat(2,1fr)}.ct-grid-2{grid-template-columns:1fr}.ct-event-summary{grid-template-columns:repeat(2,1fr)}.ct-event-card{grid-template-columns:1fr auto}.ct-event-card .ct-event-metric{display:none}.ct-detail-hero{flex-direction:column}.ct-detail-actions{justify-content:flex-start}.ct-form-grid,.ct-expense-form{grid-template-columns:1fr}.ct-form-grid label.wide,.ct-expense-form .wide{grid-column:auto}.ct-tabs{display:grid;grid-template-columns:1fr 1fr}.ct-toolbar .input,.ct-toolbar .select{width:100%;min-width:0}.ct-toolbar-spacer{display:none}}
+@media print{body.ct-printing .sidebar,body.ct-printing .top,body.ct-printing #globalFiltersHome,body.ct-printing .ct-hero-actions,body.ct-printing .ct-tabs,body.ct-printing .ct-toolbar{display:none!important}}
+</style>
 </head>
 <body>
 <div class="auth-preview-overlay" id="authPreviewOverlay">
@@ -2512,6 +2566,7 @@ body.dark .password-reset-row{background:#171b24;border-color:#514525}
  <button class="navbtn" data-page="assign">▣ Assign</button>
  <button class="navbtn" data-page="assignment-tracker">☑ Assignment Tracker</button>
  <button class="navbtn" data-page="leave-requests">◷ Leave Requests</button>
+ <button class="navbtn" data-page="chanda-tracker">৳ Chanda Tracker</button>
  <button class="navbtn" data-page="anonymous-voice">◉ Anonymous Voice</button>
  <button class="navbtn" data-page="easy-access">⌁ Easy Access</button>
  <button class="navbtn" data-page="instructions">▤ Review Instructions</button>
@@ -2789,6 +2844,128 @@ body.dark .password-reset-row{background:#171b24;border-color:#514525}
  <div class="card" id="assignBulkUploadCard" style="margin-top:14px"><h2>Assign Excel / CSV Bulk Upload</h2><div class="desc">Wide format: Date | Processor | Termination | Loan | Hardship/ In-service | ... Optional Unassigned column. Only cells present in the file are updated.</div><div class="upload" style="margin-top:10px"><div class="bulk-row"><input id="assignBulkFile" type="file" accept=".xlsx,.xls,.csv"><button class="btn primary" id="importAssignBulkBtn">Import Assign File</button><button class="btn" id="downloadAssignTemplateBtn">Download Template</button></div><div id="assignBulkStatus" class="note" style="margin-top:8px"></div></div></div>
 </section>
 
+
+
+<section class="page" id="chanda-tracker">
+ <div class="ct-shell">
+  <div class="ct-hero">
+   <div class="ct-hero-copy"><div class="ct-kicker">Daily Operations • Department Fund</div><h2>Chanda Tracker</h2><p>Manage department members, event-wise contribution, paid / partial / due status, expenses, carry-forward balance and final PDF reports. Previous-month transaction details are automatically cleared after the month closes; only the Month Closing Summary and balance remain.</p></div>
+   <div class="ct-hero-actions"><button class="btn" id="ctRefreshBtn" type="button">↻ Refresh</button><button class="btn" id="ctMonthPdfBtn" type="button">PDF • This Month</button><button class="btn" id="ctNewMemberBtn" type="button">＋ Add Member</button><button class="btn primary" id="ctNewEventBtn" type="button">＋ New Event</button></div>
+  </div>
+  <div class="ct-notice" id="ctNotice" hidden></div>
+
+  <div class="ct-stats">
+   <div class="ct-stat"><span>Opening Balance</span><b id="ctStatOpening">৳0</b><small>Carry forward</small></div>
+   <div class="ct-stat"><span>This Month Collection</span><b id="ctStatCollection">৳0</b><small>All payments</small></div>
+   <div class="ct-stat"><span>This Month Expense</span><b id="ctStatExpense">৳0</b><small>All event expenses</small></div>
+   <div class="ct-stat"><span>Current Balance</span><b id="ctStatBalance">৳0</b><small>Opening + collection − expense</small></div>
+   <div class="ct-stat"><span>Total Due</span><b id="ctStatDue">৳0</b><small>Fixed contribution events</small></div>
+   <div class="ct-stat"><span>Active Events</span><b id="ctStatEvents">0</b><small>Draft / Open</small></div>
+  </div>
+
+  <div class="ct-tabs" role="tablist">
+   <button class="ct-tab active" data-ct-tab="dashboard" type="button">Dashboard</button>
+   <button class="ct-tab" data-ct-tab="events" type="button">Events</button>
+   <button class="ct-tab" data-ct-tab="members" type="button">Members</button>
+   <button class="ct-tab" data-ct-tab="closings" type="button">Month Closings</button>
+  </div>
+
+  <div class="ct-panel active" data-ct-panel="dashboard">
+   <div class="ct-grid-2">
+    <div class="ct-card">
+     <div class="ct-card-head"><div><h3>Current Month Events</h3><p>Collection, expense and outstanding contribution at a glance.</p></div><button class="btn" id="ctViewAllEventsBtn" type="button">View Events</button></div>
+     <div class="ct-event-cards" id="ctDashboardEvents"><div class="ct-empty">Loading events…</div></div>
+    </div>
+    <div class="ct-card">
+     <div class="ct-card-head"><div><h3>Birthday Reminder</h3><p>Active department members with birthdays this month.</p></div><span class="badge" id="ctBirthdayMonth">This Month</span></div>
+     <div class="ct-birthday-list" id="ctBirthdays"><div class="ct-empty">Loading birthdays…</div></div>
+    </div>
+   </div>
+  </div>
+
+  <div class="ct-panel" data-ct-panel="events">
+   <div class="ct-card">
+    <div class="ct-toolbar">
+     <select class="select" id="ctEventStatusFilter"><option value="">All Status</option><option>Draft</option><option>Open</option><option>Closed</option><option>Cancelled</option></select>
+     <select class="select" id="ctEventOwnerFilter"><option value="">All Events</option><option value="mine">My Events</option></select>
+     <div class="ct-toolbar-spacer"></div>
+     <span class="note">Click an event to open contribution & expense details.</span>
+    </div>
+    <div class="ct-event-cards" id="ctEventList"><div class="ct-empty">Loading events…</div></div>
+   </div>
+   <div class="ct-card" style="margin-top:14px" id="ctEventDetail"><div class="ct-event-detail-empty">Select an event to view contribution, due, expense and report controls.</div></div>
+  </div>
+
+  <div class="ct-panel" data-ct-panel="members">
+   <div class="ct-card">
+    <div class="ct-toolbar">
+     <input class="input" id="ctMemberSearch" placeholder="Search member, initial, phone…">
+     <select class="select" id="ctMemberStatusFilter"><option value="">All Members</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+     <div class="ct-toolbar-spacer"></div>
+     <span class="note">Existing DAILY OVERVIEW users are pulled in automatically. Manual members can also be added.</span>
+    </div>
+    <div class="ct-table-wrap"><table class="ct-table ct-member-table"><thead><tr><th>Member</th><th>Designation / Role</th><th>Team</th><th>Phone</th><th>Joining Date</th><th>Birthday</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ctMemberRows"><tr><td colspan="8" class="ct-empty">Loading members…</td></tr></tbody></table></div>
+   </div>
+  </div>
+
+  <div class="ct-panel" data-ct-panel="closings">
+   <div class="ct-card">
+    <div class="ct-card-head"><div><h3>Month Closing Summary</h3><p>Permanent summary only. Detailed previous-month events, payments and expenses are automatically removed after rollover.</p></div></div>
+    <div class="ct-table-wrap"><table class="ct-table ct-closing-table"><thead><tr><th>Month</th><th>Opening</th><th>Collection</th><th>Expense</th><th>Closing / Carry Forward</th><th>Events</th><th>Closed</th></tr></thead><tbody id="ctClosingRows"><tr><td colspan="7" class="ct-empty">No month closing yet.</td></tr></tbody></table></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="ct-modal" id="ctEventModal" aria-hidden="true">
+  <div class="ct-modal-card">
+   <div class="ct-modal-head"><div><h3>Create Chanda Event</h3><p>All currently active members will be added to the contribution roster automatically.</p></div><button class="ct-close" data-ct-close="ctEventModal" type="button">×</button></div>
+   <div class="ct-form-grid">
+    <label>Event Name<input id="ctEventTitle" maxlength="160" placeholder="e.g. Rima Birthday"></label>
+    <label>Event Type<select id="ctEventType"><option>Birthday</option><option>Farewell</option><option>Eid</option><option>Picnic</option><option>Other</option></select></label>
+    <label>Event Date<input id="ctEventDate" type="date"></label>
+    <label>For Member (optional)<select id="ctEventTarget"><option value="">No specific member</option></select></label>
+    <label>Contribution Type<select id="ctContributionMode"><option value="fixed">Fixed per head</option><option value="flexible">Flexible / whatever they want</option></select></label>
+    <label>Per Head Amount (৳)<input id="ctPerHeadAmount" type="number" min="0" step="1" value="0"></label>
+    <label class="wide ct-check"><input id="ctExcludeTarget" type="checkbox" checked> Exclude the event person from contribution</label>
+    <label class="wide">Note<textarea id="ctEventNote" maxlength="1000" placeholder="Optional event details"></textarea></label>
+   </div>
+   <div class="ct-form-msg" id="ctEventFormMsg">Reviewer, Team Lead, Manager, Admin and System Owner can create events. Only the event owner manages collection and expenses.</div>
+   <div class="ct-modal-actions"><button class="btn" data-ct-close="ctEventModal" type="button">Cancel</button><button class="btn primary" id="ctCreateEventBtn" type="button">Create Event</button></div>
+  </div>
+ </div>
+
+ <div class="ct-modal" id="ctMemberModal" aria-hidden="true">
+  <div class="ct-modal-card">
+   <div class="ct-modal-head"><div><h3 id="ctMemberModalTitle">Add Department Member</h3><p>Member directory stays permanently; use Active / Inactive instead of deleting history.</p></div><button class="ct-close" data-ct-close="ctMemberModal" type="button">×</button></div>
+   <div class="ct-form-grid">
+    <label>Name<input id="ctMemberName" maxlength="120"></label>
+    <label>Initial / ID<input id="ctMemberInitial" maxlength="20"></label>
+    <label>Designation<input id="ctMemberDesignation" maxlength="100"></label>
+    <label>Team / Department<input id="ctMemberTeam" maxlength="100"></label>
+    <label>Phone<input id="ctMemberPhone" maxlength="40"></label>
+    <label>Joining Date<input id="ctMemberJoining" type="date"></label>
+    <label>Birthday<input id="ctMemberBirthday" type="date"></label>
+    <label>Status<select id="ctMemberActive"><option value="true">Active</option><option value="false">Inactive</option></select></label>
+   </div>
+   <div class="ct-form-msg" id="ctMemberFormMsg"></div>
+   <div class="ct-modal-actions"><button class="btn" data-ct-close="ctMemberModal" type="button">Cancel</button><button class="btn primary" id="ctSaveMemberBtn" type="button">Save Member</button></div>
+  </div>
+ </div>
+
+ <div class="ct-modal" id="ctPaymentModal" aria-hidden="true">
+  <div class="ct-modal-card" style="width:min(520px,96vw)">
+   <div class="ct-modal-head"><div><h3>Add Contribution Payment</h3><p id="ctPaymentWho">Member</p></div><button class="ct-close" data-ct-close="ctPaymentModal" type="button">×</button></div>
+   <div class="ct-form-grid">
+    <label>Amount (৳)<input id="ctPaymentAmount" type="number" min="1" step="1"></label>
+    <label>Payment Date<input id="ctPaymentDate" type="date"></label>
+    <label>Method<select id="ctPaymentMethod"><option>Cash</option><option>bKash</option><option>Nagad</option><option>Bank</option><option>Other</option></select></label>
+    <label>Note<input id="ctPaymentNote" maxlength="250" placeholder="Optional"></label>
+   </div>
+   <div class="ct-form-msg" id="ctPaymentFormMsg"></div>
+   <div class="ct-modal-actions"><button class="btn" data-ct-close="ctPaymentModal" type="button">Cancel</button><button class="btn primary" id="ctSavePaymentBtn" type="button">Save Payment</button></div>
+  </div>
+ </div>
+</section>
 
 <section class="page" id="assignment-tracker">
  <div class="at-shell">
@@ -6440,6 +6617,7 @@ const dailyTrendDefault=todayLocal().slice(0,7);$("monthCloseMonth").value=today
   {name:'Distribution Analysis',items:[['distribution.view','Distribution Analysis — Open section']]},
   {name:'Leave Requests',items:[['leave.votes.details','Leave Requests — View who voted and who is pending']]},
   {name:'Assign',items:[['assign.view','Assign — View section'],['assign.edit','Assign — Enter / edit data (individual permission)'],['assign.import','Assign — Excel / CSV import (Owner / Admin only)'],['assign.export','Assign — Download reports']]},
+  {name:'Chanda Tracker',items:[['chanda.view','Chanda Tracker — Open and view'],['chanda.create','Chanda Tracker — Create and manage own events'],['chanda.members.manage','Chanda Tracker — Add / edit department members'],['chanda.transfer','Chanda Tracker — Transfer event ownership (System Owner)']]},
   {name:'Anonymous Voice',items:[['anonymous.view','Anonymous Voice — Open and read board'],['anonymous.post','Anonymous Voice — Create anonymous post'],['anonymous.react','Anonymous Voice — React Valid / Not Valid'],['anonymous.manage','Anonymous Voice — Manage status / response / delete']]},
   {name:'Easy Access',items:[['easy.view','Easy Access — Open utilities and shared links'],['easy.links.manage','Easy Access — Add / edit / delete shared links']]},
   {name:'Review Instructions',items:[['instruction.view','Review Instructions — Open and read'],['instruction.edit','Review Instructions — Add / edit guidance'],['instruction.approve','Review Instructions — Approve as valid'],['instruction.delete','Review Instructions — Delete instruction']]},
@@ -6457,7 +6635,7 @@ const dailyTrendDefault=todayLocal().slice(0,7);$("monthCloseMonth").value=today
  const instructionApproveRoles=new Set(['System Owner','Admin','Manager']);
  const instructionDeleteRoles=new Set(['System Owner','Admin']);
  const reviewerBlocked=new Set(['manage.people']);
- const pagePerm={overview:'overview.view',ranking:'ranking.view',pareto:'pareto.view',alerts:'alerts.view','theme-review':'theme.view',teams:'teams.view',processors:'processors.view',reviewers:'reviewers.view',distribution:'distribution.view',assign:'assign.view','leave-requests':'assign.view','anonymous-voice':'anonymous.view','easy-access':'easy.view',instructions:'instruction.view',log:'log.view',register:'register.view',management:'management.view'};
+ const pagePerm={overview:'overview.view',ranking:'ranking.view',pareto:'pareto.view',alerts:'alerts.view','theme-review':'theme.view',teams:'teams.view',processors:'processors.view',reviewers:'reviewers.view',distribution:'distribution.view',assign:'assign.view','leave-requests':'assign.view','chanda-tracker':'chanda.view','anonymous-voice':'anonymous.view','easy-access':'easy.view',instructions:'instruction.view',log:'log.view',register:'register.view',management:'management.view'};
  let current=null,permissionMap={},users=[],roleRows=[],overrideRows=[],audits=[],passwordResetRequests=[],selected='',editingRole='Processor',deleteTarget=null,authBusy=false;
  const rolePermissionDraft=new Map(),individualPermissionDraft=new Map(),userDrafts=new Map();
 
