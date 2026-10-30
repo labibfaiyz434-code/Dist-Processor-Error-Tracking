@@ -373,4 +373,48 @@ function generateEventPdf(eventId){
   const event=events.find(e=>e.id===eventId);if(!event)throw new Error("Event not found.");
   if(!pdfReady())throw new Error("PDF library did not load. Refresh the page and try again.");
   const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"pt",format:"a4"});
-  const m=eventMetrics(event),person=members.find(x=>x.id===event.target_member_id),rs=eventRoster(event.id).slice().sort((a,b)=>String(a.memb
+  const m=eventMetrics(event),person=members.find(x=>x.id===event.target_member_id),rs=eventRoster(event.id).slice().sort((a,b)=>String(a.member_name).localeCompare(String(b.member_name))),xs=eventExpenses(event.id).slice().sort((a,b)=>String(a.expense_date).localeCompare(String(b.expense_date)));
+  pdfHeader(doc,`Chanda Event Report — ${event.title}`,`${event.event_type} • ${fmtDate(event.event_date)} • Status: ${event.status}`);
+  let y=111;doc.setFontSize(9);doc.setTextColor(45);
+  const meta=[`Event person: ${person?.name||"N/A"}`,`Contribution: ${event.contribution_mode==="fixed"?`${pdfMoney(event.per_head_amount)} per head`:"Flexible"}`,`Owner: ${event.owner_initial||""} — ${event.owner_name||"—"}`,`Created by: ${event.created_by_initial||""} — ${event.created_by_name||"—"}`];
+  meta.forEach(line=>{doc.text(line,40,y);y+=14});
+  if(event.notes){const lines=doc.splitTextToSize(`Note: ${event.notes}`,510);doc.text(lines,40,y);y+=lines.length*12+4}
+  doc.autoTable({startY:y+4,head:[["Expected","Collected","Due","Expense","Event Balance"]],body:[[event.contribution_mode==="fixed"?pdfMoney(m.expected):"Flexible",pdfMoney(m.collected),event.contribution_mode==="fixed"?pdfMoney(m.due):"—",pdfMoney(m.expense),pdfMoney(m.balance)]],theme:"grid",styles:{fontSize:9,cellPadding:6},headStyles:{fillColor:[54,87,183]}});
+  const contributionBody=rs.map(r=>{const paid=paidForRoster(r.id),st=paymentStatus(event,r,paid),detail=memberPayments(r.id).map(p=>`${fmtDate(p.payment_date)} ${p.payment_method} ${pdfMoney(p.amount)}`).join(" | ");return[r.member_initial||"",r.member_name,r.excluded?"—":event.contribution_mode==="fixed"?pdfMoney(r.expected_amount):"Flexible",pdfMoney(paid),event.contribution_mode==="fixed"&&!r.excluded?pdfMoney(st.due):"—",st.label,detail||"—"]});
+  doc.autoTable({startY:doc.lastAutoTable.finalY+14,head:[["ID","Member","Expected","Paid","Due","Status","Payment Details"]],body:contributionBody,theme:"striped",styles:{fontSize:7.5,cellPadding:4,overflow:"linebreak"},columnStyles:{1:{cellWidth:105},6:{cellWidth:130}},headStyles:{fillColor:[31,41,55]}});
+  const expenseBody=xs.map(x=>[fmtDate(x.expense_date),x.title,pdfMoney(x.amount),x.payment_method||"—",x.paid_by||"—",x.note||"—"]);
+  doc.autoTable({startY:doc.lastAutoTable.finalY+14,head:[["Date","Expense","Amount","Method","Paid By","Note"]],body:expenseBody.length?expenseBody:[["—","No expense recorded","—","—","—","—"]],theme:"grid",styles:{fontSize:8,cellPadding:4},headStyles:{fillColor:[180,61,54]}});
+  if(event.contribution_mode==="fixed"){
+    const dueRows=rs.map(r=>{const paid=paidForRoster(r.id),st=paymentStatus(event,r,paid);return{r,paid,st}}).filter(x=>!x.r.excluded&&x.st.due>0);
+    doc.autoTable({startY:doc.lastAutoTable.finalY+14,head:[["Due Member","Paid","Due"]],body:dueRows.length?dueRows.map(x=>[`${x.r.member_initial||""} — ${x.r.member_name}`,pdfMoney(x.paid),pdfMoney(x.st.due)]):[["No outstanding due","—","—"]],theme:"grid",styles:{fontSize:8,cellPadding:4},headStyles:{fillColor:[181,122,18]}});
+  }
+  addPdfFooter(doc);
+  doc.save(`Chanda_${String(event.event_date).slice(0,10)}_${safeFilename(event.title)}.pdf`);
+}
+function generateMonthPdf(){
+  if(!pdfReady())throw new Error("PDF library did not load. Refresh the page and try again.");
+  const key=currentMonthKey(),list=currentMonthEvents(),opening=openingBalance(),collection=list.reduce((s,e)=>s+eventMetrics(e).collected,0),expense=list.reduce((s,e)=>s+eventMetrics(e).expense,0),due=list.reduce((s,e)=>s+eventMetrics(e).due,0),balance=opening+collection-expense;
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"pt",format:"a4"});
+  pdfHeader(doc,`Monthly Chanda Report — ${monthLabel(key)}`,"Department contribution and expense summary");
+  doc.autoTable({startY:108,head:[["Opening Balance","Collection","Expense","Outstanding Due","Current Balance"]],body:[[pdfMoney(opening),pdfMoney(collection),pdfMoney(expense),pdfMoney(due),pdfMoney(balance)]],theme:"grid",styles:{fontSize:9,cellPadding:6},headStyles:{fillColor:[54,87,183]}});
+  const eventRows=list.map(e=>{const m=eventMetrics(e);return[fmtDate(e.event_date),e.title,e.event_type,e.status,pdfMoney(m.collected),pdfMoney(m.expense),e.contribution_mode==="fixed"?pdfMoney(m.due):"—",pdfMoney(m.balance),`${e.owner_initial||""} ${e.owner_name||""}`.trim()]});
+  doc.autoTable({startY:doc.lastAutoTable.finalY+14,head:[["Date","Event","Type","Status","Collected","Expense","Due","Balance","Owner"]],body:eventRows.length?eventRows:[["—","No event this month","—","—","—","—","—","—","—"]],theme:"striped",styles:{fontSize:7.5,cellPadding:4},headStyles:{fillColor:[31,41,55]}});
+  const dueRows=[];
+  list.filter(e=>e.contribution_mode==="fixed").forEach(e=>eventRoster(e.id).forEach(r=>{if(r.excluded)return;const paid=paidForRoster(r.id),st=paymentStatus(e,r,paid);if(st.due>0)dueRows.push([e.title,`${r.member_initial||""} — ${r.member_name}`,pdfMoney(paid),pdfMoney(st.due),st.label])}));
+  doc.autoTable({startY:doc.lastAutoTable.finalY+14,head:[["Event","Due Member","Paid","Due","Status"]],body:dueRows.length?dueRows:[["—","No outstanding due","—","—","—"]],theme:"grid",styles:{fontSize:8,cellPadding:4},headStyles:{fillColor:[181,122,18]}});
+  addPdfFooter(doc);doc.save(`Chanda_Month_${key}.pdf`);
+}
+async function closeEvent(eventId){
+  const event=events.find(e=>e.id===eventId),db=client();if(!event||!db||!canEditEvent(event))return;
+  const m=eventMetrics(event);
+  if(!confirm(`Download the final PDF and close "${event.title}"?${m.due>0?`\nOutstanding due: ${money(m.due)}`:""}`))return;
+  try{
+    generateEventPdf(event.id);
+    const {error}=await db.from("quality_chanda_events").update({status:"Closed",closed_at:new Date().toISOString()}).eq("id",event.id);
+    if(error)throw error;await loadData(true);notify("Final PDF generated and event closed.");
+  }catch(error){notify(error.message||String(error),true)}
+}
+async function cancelEvent(eventId){
+  const event=events.find(e=>e.id===eventId),db=client();if(!event||!db||!canEditEvent(event))return;
+  if(!confirm(`Cancel "${event.title}"? The event will remain visible until month rollover.`))return;
+  try{c
