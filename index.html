@@ -2233,6 +2233,11 @@ body.dark #overview .monthly-award-person.gold{background:linear-gradient(135deg
 #overview .monthly-award-winner-rate span{display:block;margin-top:4px;font-size:8.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 #overview .monthly-award-admin-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
 #overview .monthly-award-admin-tools .btn{padding:6px 8px;font-size:9px;border-radius:7px}
+#overview .monthly-award-native-file{display:block;max-width:245px;font-size:9px;color:var(--muted)}
+#overview .monthly-award-native-file::file-selector-button{margin-right:7px;padding:6px 9px;border:1px solid #d6ad37;border-radius:7px;background:#fff3b6;color:#76520a;font:inherit;font-weight:900;cursor:pointer}
+#overview .monthly-award-upload-status{display:block;margin-top:6px;font-size:8.5px;font-weight:850;color:var(--muted)}
+#overview .monthly-award-upload-status.ok{color:#217a47}
+#overview .monthly-award-upload-status.err{color:#a83832}
 #overview .monthly-award-admin-note{display:block;margin-top:6px;font-size:8.5px;color:var(--muted)}
 #overview .monthly-award-secondary-stack{display:grid;grid-template-rows:1fr 1fr;gap:10px}
 #overview .monthly-award-secondary{min-height:84px;display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--card) 97%,var(--bg) 3%);box-shadow:0 8px 20px rgba(15,23,42,.055)}
@@ -4597,7 +4602,7 @@ function monthlyAwardInitials(x){const name=monthlyAwardName(x);return name.spli
 function monthlyAwardImageMarkup(x){return monthlyAwardState.imageUrl?`<img class="monthly-award-photo" src="${esc(monthlyAwardState.imageUrl)}" alt="${esc(monthlyAwardName(x))}, Processor of the Month">`:`<div class="monthly-award-photo-placeholder" aria-label="No monthly award image uploaded">${esc(monthlyAwardInitials(x))}</div>`}
 function monthlyAwardWinnerCard(x){
  const manage=monthlyAwardCanManage(),image=!!monthlyAwardState.imageUrl;
- return`<article class="monthly-award-winner"><div class="monthly-award-confetti" aria-hidden="true"><span class="monthly-award-confetti-piece ribbon" style="--x:6%;--c:#d6a62a;--delay:-1.2s;--dur:6.7s;--drift:18px;--rot:620deg"></span><span class="monthly-award-confetti-piece round" style="--x:13%;--c:#fff0b8;--delay:-4.1s;--dur:7.4s;--drift:-13px;--rot:420deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:20%;--c:#c98a18;--delay:-2.8s;--dur:6.4s;--drift:25px;--rot:700deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:28%;--c:#f7d86f;--delay:-5.5s;--dur:7.9s;--drift:-19px;--rot:520deg"></span><span class="monthly-award-confetti-piece round" style="--x:36%;--c:#fff7db;--delay:-.7s;--dur:6.9s;--drift:11px;--rot:580deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:44%;--c:#d9ad39;--delay:-3.7s;--dur:7.2s;--drift:-22px;--rot:760deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:52%;--c:#f1ca58;--delay:-6.1s;--dur:8.1s;--drift:16px;--rot:660deg"></span><span class="monthly-award-confetti-piece round" style="--x:60%;--c:#fff4c7;--delay:-2.1s;--dur:6.6s;--drift:-12px;--rot:460deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:68%;--c:#bf7c13;--delay:-4.8s;--dur:7.6s;--drift:24px;--rot:720deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:76%;--c:#f8dc78;--delay:-1.7s;--dur:6.8s;--drift:-17px;--rot:560deg"></span><span class="monthly-award-confetti-piece round" style="--x:84%;--c:#fff8df;--delay:-5.9s;--dur:8.3s;--drift:14px;--rot:500deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:92%;--c:#d2a02c;--delay:-3.2s;--dur:7.1s;--drift:-20px;--rot:680deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:17%;--c:#e5b83e;--delay:-6.8s;--dur:8.5s;--drift:21px;--rot:780deg"></span><span class="monthly-award-confetti-piece" style="--x:33%;--c:#fff1b5;--delay:-7.3s;--dur:8.7s;--drift:-15px;--rot:610deg"></span><span class="monthly-award-confetti-piece round" style="--x:57%;--c:#c98519;--delay:-7.8s;--dur:9s;--drift:20px;--rot:730deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece ribbon" style="--x:73%;--c:#f7d869;--delay:-6.5s;--dur:8.4s;--drift:-18px;--rot:690deg"></span></div><div class="monthly-award-photo-wrap">${monthlyAwardImageMarkup(x)}<span class="monthly-award-crown" aria-hidden="true">★</span></div><div class="monthly-award-winner-copy"><div class="monthly-award-winner-kicker">Processor of the Month</div><div class="monthly-award-winner-name" title="${esc(monthlyAwardName(x))}">${esc(monthlyAwardName(x))}</div><div class="monthly-award-winner-meta"><b>${esc(x.processor||"")}</b> • ${esc(x.team||"")}<br>${Number(x.processed)||0} processed • ${Number(x.errors)||0} error${Number(x.errors)===1?"":"s"}</div>${manage?`<div class="monthly-award-admin-tools"><button class="btn primary" id="monthlyAwardImageChoose" type="button">${image?"Replace Image":"Import Image"}</button>${image?`<button class="btn" id="monthlyAwardImageRemove" type="button">Remove Image</button>`:""}</div><small class="monthly-award-admin-note">Monthly image only • automatically clears when the next award month starts • visible to everyone • upload controls only for System Owner/Admin.</small>`:""}</div><div class="monthly-award-winner-rate"><b>${Number(x.rate||0).toFixed(2)}%</b><span>Error Rate</span></div></article>`
+ return`<article class="monthly-award-winner"><div class="monthly-award-confetti" aria-hidden="true"><span class="monthly-award-confetti-piece ribbon" style="--x:6%;--c:#d6a62a;--delay:-1.2s;--dur:6.7s;--drift:18px;--rot:620deg"></span><span class="monthly-award-confetti-piece round" style="--x:13%;--c:#fff0b8;--delay:-4.1s;--dur:7.4s;--drift:-13px;--rot:420deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:20%;--c:#c98a18;--delay:-2.8s;--dur:6.4s;--drift:25px;--rot:700deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:28%;--c:#f7d86f;--delay:-5.5s;--dur:7.9s;--drift:-19px;--rot:520deg"></span><span class="monthly-award-confetti-piece round" style="--x:36%;--c:#fff7db;--delay:-.7s;--dur:6.9s;--drift:11px;--rot:580deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:44%;--c:#d9ad39;--delay:-3.7s;--dur:7.2s;--drift:-22px;--rot:760deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:52%;--c:#f1ca58;--delay:-6.1s;--dur:8.1s;--drift:16px;--rot:660deg"></span><span class="monthly-award-confetti-piece round" style="--x:60%;--c:#fff4c7;--delay:-2.1s;--dur:6.6s;--drift:-12px;--rot:460deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:68%;--c:#bf7c13;--delay:-4.8s;--dur:7.6s;--drift:24px;--rot:720deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:76%;--c:#f8dc78;--delay:-1.7s;--dur:6.8s;--drift:-17px;--rot:560deg"></span><span class="monthly-award-confetti-piece round" style="--x:84%;--c:#fff8df;--delay:-5.9s;--dur:8.3s;--drift:14px;--rot:500deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:92%;--c:#d2a02c;--delay:-3.2s;--dur:7.1s;--drift:-20px;--rot:680deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:17%;--c:#e5b83e;--delay:-6.8s;--dur:8.5s;--drift:21px;--rot:780deg"></span><span class="monthly-award-confetti-piece" style="--x:33%;--c:#fff1b5;--delay:-7.3s;--dur:8.7s;--drift:-15px;--rot:610deg"></span><span class="monthly-award-confetti-piece round" style="--x:57%;--c:#c98519;--delay:-7.8s;--dur:9s;--drift:20px;--rot:730deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece ribbon" style="--x:73%;--c:#f7d869;--delay:-6.5s;--dur:8.4s;--drift:-18px;--rot:690deg"></span></div><div class="monthly-award-photo-wrap">${monthlyAwardImageMarkup(x)}<span class="monthly-award-crown" aria-hidden="true">★</span></div><div class="monthly-award-winner-copy"><div class="monthly-award-winner-kicker">Processor of the Month</div><div class="monthly-award-winner-name" title="${esc(monthlyAwardName(x))}">${esc(monthlyAwardName(x))}</div><div class="monthly-award-winner-meta"><b>${esc(x.processor||"")}</b> • ${esc(x.team||"")}<br>${Number(x.processed)||0} processed • ${Number(x.errors)||0} error${Number(x.errors)===1?"":"s"}</div>${manage?`<div class="monthly-award-admin-tools"><input class="monthly-award-native-file" id="monthlyAwardImageNative" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onchange="monthlyAwardNativeSelected(this)">${image?`<button class="btn" id="monthlyAwardImageRemove" type="button">Remove Image</button>`:""}</div><small class="monthly-award-upload-status" id="monthlyAwardUploadStatus">${image?"Current monthly photo loaded.":"Choose a JPG, PNG, or WebP photo (max 5 MB)."}</small><small class="monthly-award-admin-note">Monthly image only • automatically clears when the next award month starts • visible to everyone • upload controls only for System Owner/Admin.</small>`:""}</div><div class="monthly-award-winner-rate"><b>${Number(x.rate||0).toFixed(2)}%</b><span>Error Rate</span></div></article>`
 }
 function monthlyAwardSecondaryCard(x,i){if(!x)return"";const second=i===1,theme=second?"silver":"bronze",place=second?"2nd Place":"3rd Place";return`<article class="monthly-award-secondary ${theme}"><div class="monthly-award-secondary-medal">${second?"2":"3"}</div><div><div class="monthly-award-secondary-place">${place}</div><div class="monthly-award-secondary-name" title="${esc(monthlyAwardName(x))}">${esc(monthlyAwardName(x))}</div><div class="monthly-award-secondary-meta">${esc(x.team||"")} • ${Number(x.processed)||0} processed</div></div><div class="monthly-award-secondary-rate"><b>${Number(x.rate||0).toFixed(2)}%</b><span>Error Rate</span></div></article>`}
 function stopMonthlyAwardMotion(){try{monthlyAwardState.animation?.cancel()}catch(e){}monthlyAwardState.animation=null;try{monthlyAwardState.resizeObserver?.disconnect()}catch(e){}monthlyAwardState.resizeObserver=null}
@@ -4647,8 +4652,9 @@ async function uploadMonthlyAwardImage(file){
  if(!monthlyAwardCanManage())return;
  const month=monthlyAwardState.month,snapshot=monthlyAwardState.snapshot,client=window.dailyOverviewGetClient?.();
  if(!month||!snapshot||!client){toast?.("Monthly award is not ready yet. Refresh and try again.",true);return}
- const chooseButton=document.getElementById("monthlyAwardImageChoose");
- if(chooseButton){chooseButton.disabled=true;chooseButton.textContent="Uploading…"}
+ const nativeInput=document.getElementById("monthlyAwardImageNative");
+ if(nativeInput)nativeInput.disabled=true;
+ monthlyAwardSetUploadStatus("Uploading photo to secure storage…");
  try{
   const allowed={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"};
   const ext=allowed[file?.type||""];
@@ -4685,16 +4691,15 @@ async function uploadMonthlyAwardImage(file){
 
   monthlyAwardState.snapshot=updated.data;
   monthlyAwardState.imageUrl=signed.data.signedUrl;
+  monthlyAwardSetUploadStatus("Photo saved successfully.","ok");
   toast?.("Processor of the Month image saved successfully.");
   renderMonthlyProcessorAwards()
  }catch(error){
   console.error("Monthly award image upload failed",error);
+  monthlyAwardSetUploadStatus("Upload failed: "+(error.message||String(error)),"err");
   toast?.("Image update failed: "+(error.message||String(error)),true)
  }finally{
-  if(chooseButton){
-   chooseButton.disabled=false;
-   chooseButton.textContent=monthlyAwardState.imageUrl?"Replace Image":"Import Image"
-  }
+  if(nativeInput)nativeInput.disabled=false
  }
 }
 async function removeMonthlyAwardImage(){
@@ -4723,7 +4728,30 @@ async function removeMonthlyAwardImage(){
   renderMonthlyProcessorAwards()
  }catch(error){toast?.("Image remove failed: "+(error.message||String(error)),true)}
 }
-function chooseMonthlyAwardImage(){if(!monthlyAwardCanManage())return;const picker=document.createElement("input");picker.type="file";picker.accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";picker.style.position="fixed";picker.style.left="-9999px";picker.style.opacity="0";document.body.appendChild(picker);const cleanup=()=>{setTimeout(()=>{try{picker.remove()}catch(_){}},0)};picker.addEventListener("change",()=>{const file=picker.files?.[0]||null;cleanup();if(file){toast?.("Image selected. Preparing upload…");uploadMonthlyAwardImage(file)}},{once:true});picker.addEventListener("cancel",cleanup,{once:true});picker.click()}function bindMonthlyAwardControls(){const stage=document.getElementById("monthlyAwardsStage");if(!stage||stage.dataset.boundMonthlyAwards==="1")return;stage.dataset.boundMonthlyAwards="1";stage.addEventListener("click",e=>{const target=e.target?.closest?.("button");if(!target)return;if(target.id==="monthlyAwardImageChoose")chooseMonthlyAwardImage();if(target.id==="monthlyAwardImageRemove")removeMonthlyAwardImage()})}
+function monthlyAwardSetUploadStatus(message,type=""){
+ const el=document.getElementById("monthlyAwardUploadStatus");
+ if(!el)return;
+ el.textContent=message;
+ el.classList.remove("ok","err");
+ if(type==="ok")el.classList.add("ok");
+ if(type==="err")el.classList.add("err")
+}
+function monthlyAwardNativeSelected(input){
+ const file=input?.files?.[0]||null;
+ if(!file){monthlyAwardSetUploadStatus("No photo selected.");return}
+ monthlyAwardSetUploadStatus(`Selected: ${file.name} • ${Math.max(1,Math.round(file.size/1024))} KB. Starting upload…`);
+ uploadMonthlyAwardImage(file).finally(()=>{try{input.value=""}catch(_){}})
+}
+window.monthlyAwardNativeSelected=monthlyAwardNativeSelected;
+function bindMonthlyAwardControls(){
+ const stage=document.getElementById("monthlyAwardsStage");
+ if(!stage||stage.dataset.boundMonthlyAwards==="1")return;
+ stage.dataset.boundMonthlyAwards="1";
+ stage.addEventListener("click",e=>{
+  const target=e.target?.closest?.("button");
+  if(target?.id==="monthlyAwardImageRemove")removeMonthlyAwardImage()
+ })
+}
 function renderMonthlyProcessorAwards(){
  const stage=document.getElementById("monthlyAwardsStage"),label=document.getElementById("monthlyAwardsMonth");if(!stage||!label)return;bindMonthlyAwardControls();const awardMonth=shiftMonth(todayLocal().slice(0,7),-1);label.textContent=monthlyAwardLabel(awardMonth);
  if(monthlyAwardState.month!==awardMonth){stopMonthlyAwardMotion();monthlyAwardState.month=awardMonth;monthlyAwardState.snapshot=null;monthlyAwardState.imageUrl="";monthlyAwardState.loaded=false;monthlyAwardState.loading=false;monthlyAwardState.error=""}
