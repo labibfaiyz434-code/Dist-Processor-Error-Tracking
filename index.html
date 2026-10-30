@@ -2239,6 +2239,19 @@ body.dark #overview .monthly-award-person.gold{background:linear-gradient(135deg
 #overview .monthly-award-upload-status.ok{color:#217a47}
 #overview .monthly-award-upload-status.err{color:#a83832}
 #overview .monthly-award-admin-note{display:block;margin-top:6px;font-size:8.5px;color:var(--muted)}
+#overview .overview-filter-dock{margin-top:14px}
+#overview .overview-filter-dock:empty{display:none}
+#overview .monthly-award-winner-note{margin-top:10px;padding:9px 10px;border:1px solid rgba(183,125,9,.20);border-radius:10px;background:rgba(255,248,220,.55)}
+#overview .monthly-award-winner-note span{display:block;font-size:8px;font-weight:1000;letter-spacing:.10em;text-transform:uppercase;color:#8b6000}
+#overview .monthly-award-winner-note p{margin:5px 0 0;font-size:10.5px;line-height:1.5;font-weight:750;color:var(--ink)}
+#overview .monthly-award-note-editor{margin-top:10px;padding:9px 10px;border:1px solid rgba(183,125,9,.22);border-radius:10px;background:rgba(255,250,232,.72)}
+#overview .monthly-award-note-editor label{display:block;margin-bottom:5px;font-size:9px;font-weight:950;color:#795608}
+#overview .monthly-award-note-editor textarea{display:block;width:100%;min-height:54px;resize:vertical;border:1px solid #dec67b;border-radius:8px;padding:8px 9px;background:var(--card);color:var(--ink);font-size:10px;line-height:1.45}
+#overview .monthly-award-note-editor-foot{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:6px}
+#overview .monthly-award-note-editor-foot small{font-size:8px;color:var(--muted)}
+#overview .monthly-award-note-editor-foot .btn{padding:6px 9px;font-size:9px}
+body.dark #overview .monthly-award-winner-note,body.dark #overview .monthly-award-note-editor{background:rgba(103,78,17,.16);border-color:rgba(232,190,74,.24)}
+body.dark #overview .monthly-award-note-editor textarea{background:#162033;border-color:#5f5127;color:#e5e7eb}
 #overview .monthly-award-secondary-stack{display:grid;grid-template-rows:1fr 1fr;gap:10px}
 #overview .monthly-award-secondary{min-height:84px;display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--card) 97%,var(--bg) 3%);box-shadow:0 8px 20px rgba(15,23,42,.055)}
 #overview .monthly-award-secondary.silver{border-color:#c9d3df;background:linear-gradient(135deg,#f8fafc,color-mix(in srgb,var(--card) 97%,#cbd5e1 3%))}
@@ -2407,6 +2420,7 @@ body.dark .password-reset-row{background:#171b24;border-color:#514525}
 @media(max-width:720px){.password-reset-row{grid-template-columns:1fr}.password-reset-actions{justify-content:flex-start}}
 </style>
 
+<!-- Executive Overview v14: Action Priority removed, filters docked above Processor Quality, winner-only monthly note -->
 </head>
 <body>
 <div class="auth-preview-overlay" id="authPreviewOverlay">
@@ -2537,30 +2551,27 @@ body.dark .password-reset-row{background:#171b24;border-color:#514525}
 </header>
 
 <div class="content">
-<div class="mobile-filter-row no-print">
- <button class="btn mobile-filter-toggle" id="mobileFilterToggle" type="button">☰ Filters</button>
-</div>
-<div class="filters no-print global-filters" id="globalFilters">
- <select id="teamFilter" class="select"><option value="">All Teams</option></select>
- <select id="monthFilter" class="select"><option value="">All Months</option></select>
- <select id="dayFilter" class="select"><option value="">All Days</option></select>
- <select id="processorFilter" class="select"><option value="">All Processors</option></select>
- <select id="reviewerFilter" class="select"><option value="">All Reviewers</option></select>
- <select id="distFilter" class="select"><option value="">All Distribution Types</option></select>
- <div class="quick-date-actions">
-   <button class="quick-date-btn" id="quickTodayBtn" type="button">Today</button>
-   <button class="quick-date-btn" id="quickYesterdayBtn" type="button">Yesterday</button>
-   <button class="quick-date-btn" id="quickMonthBtn" type="button">This Month</button>
+<div id="globalFiltersHome">
+ <div class="mobile-filter-row no-print">
+  <button class="btn mobile-filter-toggle" id="mobileFilterToggle" type="button">☰ Filters</button>
+ </div>
+ <div class="filters no-print global-filters" id="globalFilters">
+  <select id="teamFilter" class="select"><option value="">All Teams</option></select>
+  <select id="monthFilter" class="select"><option value="">All Months</option></select>
+  <select id="dayFilter" class="select"><option value="">All Days</option></select>
+  <select id="processorFilter" class="select"><option value="">All Processors</option></select>
+  <select id="reviewerFilter" class="select"><option value="">All Reviewers</option></select>
+  <select id="distFilter" class="select"><option value="">All Distribution Types</option></select>
+  <div class="quick-date-actions">
+    <button class="quick-date-btn" id="quickTodayBtn" type="button">Today</button>
+    <button class="quick-date-btn" id="quickYesterdayBtn" type="button">Yesterday</button>
+    <button class="quick-date-btn" id="quickMonthBtn" type="button">This Month</button>
+  </div>
  </div>
 </div>
 
 <section class="page active" id="overview">
  <div id="connectNotice" class="callout warn" style="margin-bottom:14px">Connecting to shared database…</div>
-
- <div class="attention-strip">
-   <div class="attention-strip-title"><span class="attention-dot"></span>Action Priority</div>
-   <div id="needsAttention" class="attention-items"><span class="attention-item neutral">Checking selected period…</span></div>
- </div>
 
  <section class="monthly-awards" id="monthlyProcessorAwards" aria-label="Previous month processor awards">
   <div class="monthly-awards-head">
@@ -2593,6 +2604,8 @@ body.dark .password-reset-row{background:#171b24;border-color:#514525}
   <div class="grid kpis today-ops-kpis" id="todayOpsKpis" style="margin-top:10px"></div>
   <div class="today-ops-detail-grid" id="todayOpsDetails"></div>
  </div>
+
+ <div id="overviewFilterDock" class="overview-filter-dock" aria-label="Executive Overview filters"></div>
 
  <!-- 3 + 4) Processor / Distribution Quality -->
  <div class="grid two workload-compare-grid" style="margin-top:14px">
@@ -4593,7 +4606,7 @@ function monthlyAwardRanking(month){
  const minVol=qualityMinVolume(),processors=[...new Map((sharedStore.config.processors||[]).map(p=>[String(p.initial||"").toUpperCase(),p])).values()];
  return processors.map(p=>{const x=processorMonthStats(p.initial,month);return{processor:p.initial,name:p.name||p.initial,team:teamForProcessor(p.initial),processed:x.processed,errors:x.errors,rate:x.rate}}).filter(x=>x.processed>=minVol).sort((a,b)=>a.rate-b.rate||b.processed-a.processed||a.processor.localeCompare(b.processor)).slice(0,3)
 }
-const monthlyAwardState={month:"",snapshot:null,imageUrl:"",loading:false,loaded:false,error:"",animation:null,resizeObserver:null};
+const monthlyAwardState={month:"",snapshot:null,imageUrl:"",winnerNote:"",winnerNoteUpdatedAt:"",loading:false,loaded:false,error:"",animation:null,resizeObserver:null};
 function monthlyAwardNotify(message,bad=false){
  try{
   if(typeof window.motionToast==="function"){
@@ -4617,9 +4630,43 @@ function monthlyAwardSnapshotRow(month,ranked){return{award_month:monthlyAwardMo
 function monthlyAwardName(x){if(!x)return"—";return String(x.name||x.processor||"—").trim()||String(x.processor||"—")}
 function monthlyAwardInitials(x){const name=monthlyAwardName(x);return name.split(/\s+/).filter(Boolean).slice(0,2).map(v=>v[0]).join("").toUpperCase()||String(x?.processor||"★").slice(0,2).toUpperCase()}
 function monthlyAwardImageMarkup(x){return monthlyAwardState.imageUrl?`<img class="monthly-award-photo" src="${esc(monthlyAwardState.imageUrl)}" alt="${esc(monthlyAwardName(x))}, Processor of the Month">`:`<div class="monthly-award-photo-placeholder" aria-label="No monthly award image uploaded">${esc(monthlyAwardInitials(x))}</div>`}
+function monthlyAwardViewerIsWinner(x){
+ const viewer=window.dailyOverviewCurrentUser||{},viewerInitial=String(viewer.processorInitial||viewer.initial||"").trim().toUpperCase(),winnerInitial=String(x?.processor||"").trim().toUpperCase();
+ return !!viewer.id&&!!viewerInitial&&viewerInitial===winnerInitial
+}
+function monthlyAwardWinnerNoteMarkup(x){
+ const note=String(monthlyAwardState.winnerNote||"").trim(),isWinner=monthlyAwardViewerIsWinner(x);
+ if(isWinner)return`<div class="monthly-award-note-editor"><label for="monthlyAwardWinnerNote">Your Winner's Note</label><textarea id="monthlyAwardWinnerNote" maxlength="280" rows="2" placeholder="In 1–2 lines, share what helped you perform well or motivate others.">${esc(note)}</textarea><div class="monthly-award-note-editor-foot"><small>Only your signed-in winner account can edit this note • 280 characters max</small><button class="btn primary" id="monthlyAwardWinnerNoteSave" type="button">Save Note</button></div></div>`;
+ if(!note)return"";
+ return`<div class="monthly-award-winner-note"><span>Winner's Note</span><p>“${esc(note)}”</p></div>`
+}
+async function saveMonthlyAwardWinnerNote(){
+ const snapshot=monthlyAwardState.snapshot,viewer=window.dailyOverviewCurrentUser,client=window.dailyOverviewGetClient?.(),field=document.getElementById("monthlyAwardWinnerNote"),button=document.getElementById("monthlyAwardWinnerNoteSave");
+ if(!snapshot?.winner||!viewer||!client||!field)return;
+ if(!monthlyAwardViewerIsWinner(snapshot.winner)){monthlyAwardNotify("Only the Processor of the Month can edit this note.",true);return}
+ const note=String(field.value||"").trim();
+ if(note.length>280){monthlyAwardNotify("Winner's note must be 280 characters or less.",true);return}
+ if(button){button.disabled=true;button.textContent="Saving…"}
+ try{
+  const awardMonth=monthlyAwardMonthDate(monthlyAwardState.month),winnerInitial=String(snapshot.winner.processor||"").trim().toUpperCase();
+  const saved=await client.from("quality_monthly_award_winner_notes").upsert({
+   award_month:awardMonth,
+   winner_user_id:viewer.id,
+   winner_processor_initial:winnerInitial,
+   note,
+   updated_at:new Date().toISOString()
+  },{onConflict:"award_month"}).select("award_month,winner_user_id,winner_processor_initial,note,updated_at").single();
+  if(saved.error)throw saved.error;
+  monthlyAwardState.winnerNote=saved.data?.note||"";
+  monthlyAwardState.winnerNoteUpdatedAt=saved.data?.updated_at||"";
+  monthlyAwardNotify(note?"Winner's note saved.":"Winner's note cleared.");
+  renderMonthlyProcessorAwards()
+ }catch(error){monthlyAwardNotify("Winner's note could not be saved: "+(error.message||String(error)),true)}
+ finally{if(button){button.disabled=false;button.textContent="Save Note"}}
+}
 function monthlyAwardWinnerCard(x){
  const manage=monthlyAwardCanManage(),image=!!monthlyAwardState.imageUrl;
- return`<article class="monthly-award-winner"><div class="monthly-award-confetti" aria-hidden="true"><span class="monthly-award-confetti-piece ribbon" style="--x:6%;--c:#d6a62a;--delay:-1.2s;--dur:6.7s;--drift:18px;--rot:620deg"></span><span class="monthly-award-confetti-piece round" style="--x:13%;--c:#fff0b8;--delay:-4.1s;--dur:7.4s;--drift:-13px;--rot:420deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:20%;--c:#c98a18;--delay:-2.8s;--dur:6.4s;--drift:25px;--rot:700deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:28%;--c:#f7d86f;--delay:-5.5s;--dur:7.9s;--drift:-19px;--rot:520deg"></span><span class="monthly-award-confetti-piece round" style="--x:36%;--c:#fff7db;--delay:-.7s;--dur:6.9s;--drift:11px;--rot:580deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:44%;--c:#d9ad39;--delay:-3.7s;--dur:7.2s;--drift:-22px;--rot:760deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:52%;--c:#f1ca58;--delay:-6.1s;--dur:8.1s;--drift:16px;--rot:660deg"></span><span class="monthly-award-confetti-piece round" style="--x:60%;--c:#fff4c7;--delay:-2.1s;--dur:6.6s;--drift:-12px;--rot:460deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:68%;--c:#bf7c13;--delay:-4.8s;--dur:7.6s;--drift:24px;--rot:720deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:76%;--c:#f8dc78;--delay:-1.7s;--dur:6.8s;--drift:-17px;--rot:560deg"></span><span class="monthly-award-confetti-piece round" style="--x:84%;--c:#fff8df;--delay:-5.9s;--dur:8.3s;--drift:14px;--rot:500deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:92%;--c:#d2a02c;--delay:-3.2s;--dur:7.1s;--drift:-20px;--rot:680deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:17%;--c:#e5b83e;--delay:-6.8s;--dur:8.5s;--drift:21px;--rot:780deg"></span><span class="monthly-award-confetti-piece" style="--x:33%;--c:#fff1b5;--delay:-7.3s;--dur:8.7s;--drift:-15px;--rot:610deg"></span><span class="monthly-award-confetti-piece round" style="--x:57%;--c:#c98519;--delay:-7.8s;--dur:9s;--drift:20px;--rot:730deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece ribbon" style="--x:73%;--c:#f7d869;--delay:-6.5s;--dur:8.4s;--drift:-18px;--rot:690deg"></span></div><div class="monthly-award-photo-wrap">${monthlyAwardImageMarkup(x)}<span class="monthly-award-crown" aria-hidden="true">★</span></div><div class="monthly-award-winner-copy"><div class="monthly-award-winner-kicker">Processor of the Month</div><div class="monthly-award-winner-name" title="${esc(monthlyAwardName(x))}">${esc(monthlyAwardName(x))}</div><div class="monthly-award-winner-meta"><b>${esc(x.processor||"")}</b> • ${esc(x.team||"")}<br>${Number(x.processed)||0} processed • ${Number(x.errors)||0} error${Number(x.errors)===1?"":"s"}</div>${manage?`<div class="monthly-award-admin-tools"><input class="monthly-award-native-file" id="monthlyAwardImageNative" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onchange="monthlyAwardNativeSelected(this)">${image?`<button class="btn" id="monthlyAwardImageRemove" type="button">Remove Image</button>`:""}</div><small class="monthly-award-upload-status" id="monthlyAwardUploadStatus">${image?"Current monthly photo loaded.":"Choose a JPG, PNG, or WebP photo (max 5 MB)."}</small><small class="monthly-award-admin-note">Monthly image only • automatically clears when the next award month starts • visible to everyone • upload controls only for System Owner/Admin.</small>`:""}</div><div class="monthly-award-winner-rate"><b>${Number(x.rate||0).toFixed(2)}%</b><span>Error Rate</span></div></article>`
+ return`<article class="monthly-award-winner"><div class="monthly-award-confetti" aria-hidden="true"><span class="monthly-award-confetti-piece ribbon" style="--x:6%;--c:#d6a62a;--delay:-1.2s;--dur:6.7s;--drift:18px;--rot:620deg"></span><span class="monthly-award-confetti-piece round" style="--x:13%;--c:#fff0b8;--delay:-4.1s;--dur:7.4s;--drift:-13px;--rot:420deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:20%;--c:#c98a18;--delay:-2.8s;--dur:6.4s;--drift:25px;--rot:700deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:28%;--c:#f7d86f;--delay:-5.5s;--dur:7.9s;--drift:-19px;--rot:520deg"></span><span class="monthly-award-confetti-piece round" style="--x:36%;--c:#fff7db;--delay:-.7s;--dur:6.9s;--drift:11px;--rot:580deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:44%;--c:#d9ad39;--delay:-3.7s;--dur:7.2s;--drift:-22px;--rot:760deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:52%;--c:#f1ca58;--delay:-6.1s;--dur:8.1s;--drift:16px;--rot:660deg"></span><span class="monthly-award-confetti-piece round" style="--x:60%;--c:#fff4c7;--delay:-2.1s;--dur:6.6s;--drift:-12px;--rot:460deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece" style="--x:68%;--c:#bf7c13;--delay:-4.8s;--dur:7.6s;--drift:24px;--rot:720deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:76%;--c:#f8dc78;--delay:-1.7s;--dur:6.8s;--drift:-17px;--rot:560deg"></span><span class="monthly-award-confetti-piece round" style="--x:84%;--c:#fff8df;--delay:-5.9s;--dur:8.3s;--drift:14px;--rot:500deg;--w:5px;--h:5px"></span><span class="monthly-award-confetti-piece" style="--x:92%;--c:#d2a02c;--delay:-3.2s;--dur:7.1s;--drift:-20px;--rot:680deg"></span><span class="monthly-award-confetti-piece ribbon" style="--x:17%;--c:#e5b83e;--delay:-6.8s;--dur:8.5s;--drift:21px;--rot:780deg"></span><span class="monthly-award-confetti-piece" style="--x:33%;--c:#fff1b5;--delay:-7.3s;--dur:8.7s;--drift:-15px;--rot:610deg"></span><span class="monthly-award-confetti-piece round" style="--x:57%;--c:#c98519;--delay:-7.8s;--dur:9s;--drift:20px;--rot:730deg;--w:6px;--h:6px"></span><span class="monthly-award-confetti-piece ribbon" style="--x:73%;--c:#f7d869;--delay:-6.5s;--dur:8.4s;--drift:-18px;--rot:690deg"></span></div><div class="monthly-award-photo-wrap">${monthlyAwardImageMarkup(x)}<span class="monthly-award-crown" aria-hidden="true">★</span></div><div class="monthly-award-winner-copy"><div class="monthly-award-winner-kicker">Processor of the Month</div><div class="monthly-award-winner-name" title="${esc(monthlyAwardName(x))}">${esc(monthlyAwardName(x))}</div><div class="monthly-award-winner-meta"><b>${esc(x.processor||"")}</b> • ${esc(x.team||"")}<br>${Number(x.processed)||0} processed • ${Number(x.errors)||0} error${Number(x.errors)===1?"":"s"}</div>${monthlyAwardWinnerNoteMarkup(x)}${manage?`<div class="monthly-award-admin-tools"><input class="monthly-award-native-file" id="monthlyAwardImageNative" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onchange="monthlyAwardNativeSelected(this)">${image?`<button class="btn" id="monthlyAwardImageRemove" type="button">Remove Image</button>`:""}</div><small class="monthly-award-upload-status" id="monthlyAwardUploadStatus">${image?"Current monthly photo loaded.":"Choose a JPG, PNG, or WebP photo (max 5 MB)."}</small><small class="monthly-award-admin-note">Monthly image only • automatically clears when the next award month starts • visible to everyone • upload controls only for System Owner/Admin.</small>`:""}</div><div class="monthly-award-winner-rate"><b>${Number(x.rate||0).toFixed(2)}%</b><span>Error Rate</span></div></article>`
 }
 function monthlyAwardSecondaryCard(x,i){if(!x)return"";const second=i===1,theme=second?"silver":"bronze",place=second?"2nd Place":"3rd Place";return`<article class="monthly-award-secondary ${theme}"><div class="monthly-award-secondary-medal">${second?"2":"3"}</div><div><div class="monthly-award-secondary-place">${place}</div><div class="monthly-award-secondary-name" title="${esc(monthlyAwardName(x))}">${esc(monthlyAwardName(x))}</div><div class="monthly-award-secondary-meta">${esc(x.team||"")} • ${Number(x.processed)||0} processed</div></div><div class="monthly-award-secondary-rate"><b>${Number(x.rate||0).toFixed(2)}%</b><span>Error Rate</span></div></article>`}
 function stopMonthlyAwardMotion(){try{monthlyAwardState.animation?.cancel()}catch(e){}monthlyAwardState.animation=null;try{monthlyAwardState.resizeObserver?.disconnect()}catch(e){}monthlyAwardState.resizeObserver=null}
@@ -4639,7 +4686,15 @@ async function ensureMonthlyAwardSnapshot(month){
   if(!data&&monthlyAwardCanManage()){
    const ranked=monthlyAwardRanking(month);if(ranked.length){const row=monthlyAwardSnapshotRow(month,ranked),created=await client.from("quality_monthly_processor_awards").insert(row).select("award_month,winner,second_place,third_place,min_processed,ranking_rule,winner_image_path,winner_image_data,finalized_at,finalized_by,updated_at").single();if(created.error){if(created.error.code==="23505"){const retry=await client.from("quality_monthly_processor_awards").select("award_month,winner,second_place,third_place,min_processed,ranking_rule,winner_image_path,winner_image_data,finalized_at,finalized_by,updated_at").eq("award_month",monthlyAwardMonthDate(month)).maybeSingle();if(retry.error)throw retry.error;data=retry.data}else throw created.error}else data=created.data}
   }
-  monthlyAwardState.snapshot=data||null;monthlyAwardState.imageUrl=data?await monthlyAwardSignedImage(data):"";monthlyAwardState.loaded=true
+  monthlyAwardState.snapshot=data||null;monthlyAwardState.imageUrl=data?await monthlyAwardSignedImage(data):"";
+  monthlyAwardState.winnerNote="";monthlyAwardState.winnerNoteUpdatedAt="";
+  if(data){
+   const noteResult=await client.from("quality_monthly_award_winner_notes").select("award_month,winner_user_id,winner_processor_initial,note,updated_at").eq("award_month",monthlyAwardMonthDate(month)).maybeSingle();
+   if(noteResult.error)throw noteResult.error;
+   monthlyAwardState.winnerNote=noteResult.data?.note||"";
+   monthlyAwardState.winnerNoteUpdatedAt=noteResult.data?.updated_at||""
+  }
+  monthlyAwardState.loaded=true
  }catch(error){monthlyAwardState.snapshot=null;monthlyAwardState.imageUrl="";monthlyAwardState.loaded=true;monthlyAwardState.error=error.message||String(error);console.warn("Monthly award snapshot unavailable",error)}finally{monthlyAwardState.loading=false;renderMonthlyProcessorAwards()}
 }
 async function monthlyAwardCompressImage(file){
@@ -4766,19 +4821,20 @@ function bindMonthlyAwardControls(){
  stage.dataset.boundMonthlyAwards="1";
  stage.addEventListener("click",e=>{
   const target=e.target?.closest?.("button");
-  if(target?.id==="monthlyAwardImageRemove")removeMonthlyAwardImage()
+  if(target?.id==="monthlyAwardImageRemove")removeMonthlyAwardImage();
+  if(target?.id==="monthlyAwardWinnerNoteSave")saveMonthlyAwardWinnerNote()
  })
 }
 function renderMonthlyProcessorAwards(){
  const stage=document.getElementById("monthlyAwardsStage"),label=document.getElementById("monthlyAwardsMonth");if(!stage||!label)return;bindMonthlyAwardControls();const awardMonth=shiftMonth(todayLocal().slice(0,7),-1);label.textContent=monthlyAwardLabel(awardMonth);
- if(monthlyAwardState.month!==awardMonth){stopMonthlyAwardMotion();monthlyAwardState.month=awardMonth;monthlyAwardState.snapshot=null;monthlyAwardState.imageUrl="";monthlyAwardState.loaded=false;monthlyAwardState.loading=false;monthlyAwardState.error=""}
+ if(monthlyAwardState.month!==awardMonth){stopMonthlyAwardMotion();monthlyAwardState.month=awardMonth;monthlyAwardState.snapshot=null;monthlyAwardState.imageUrl="";monthlyAwardState.winnerNote="";monthlyAwardState.winnerNoteUpdatedAt="";monthlyAwardState.loaded=false;monthlyAwardState.loading=false;monthlyAwardState.error=""}
  const viewer=window.dailyOverviewCurrentUser;if(!viewer){stage.innerHTML=`<div class="monthly-awards-waiting"><b>${esc(monthlyAwardLabel(awardMonth))}</b>Sign in to load the frozen monthly award.</div>`;return}
  if(!monthlyAwardState.loaded){stage.innerHTML=`<div class="monthly-awards-waiting"><b>${esc(monthlyAwardLabel(awardMonth))}</b>${monthlyAwardState.loading?"Loading frozen monthly award…":"Preparing monthly award snapshot…"}</div>`;if(!monthlyAwardState.loading)setTimeout(()=>ensureMonthlyAwardSnapshot(awardMonth),0);return}
  if(monthlyAwardState.error){stage.innerHTML=`<div class="monthly-awards-waiting"><b>Monthly award setup is not ready.</b>${esc(monthlyAwardState.error)}<br><small>Run the Monthly Processor Awards SQL migration once, then refresh.</small></div>`;return}
  const snap=monthlyAwardState.snapshot;if(!snap){const ranked=monthlyAwardRanking(awardMonth),minVol=qualityMinVolume();stage.innerHTML=`<div class="monthly-awards-waiting"><b>${esc(monthlyAwardLabel(awardMonth))}</b>${ranked.length?"Waiting for System Owner/Admin to finalize this monthly award snapshot.":`No processor reached the minimum ${minVol} processed threshold for this month.`}</div>`;return}
  const group=`<div class="monthly-awards-group">${monthlyAwardWinnerCard(snap.winner)}<div class="monthly-award-secondary-stack">${monthlyAwardSecondaryCard(snap.second_place,1)}${monthlyAwardSecondaryCard(snap.third_place,2)}</div></div>`;stage.innerHTML=`<div class="monthly-awards-track" aria-label="${esc(monthlyAwardLabel(awardMonth))}">${group}</div>`;startMonthlyAwardMotion()
 }
-window.addEventListener("daily-overview-session-ready",()=>{monthlyAwardState.loaded=false;monthlyAwardState.error="";renderMonthlyProcessorAwards()});window.addEventListener("daily-overview-session-ended",()=>{stopMonthlyAwardMotion();monthlyAwardState.snapshot=null;monthlyAwardState.imageUrl="";monthlyAwardState.loaded=false;renderMonthlyProcessorAwards()});
+window.addEventListener("daily-overview-session-ready",()=>{monthlyAwardState.loaded=false;monthlyAwardState.error="";renderMonthlyProcessorAwards()});window.addEventListener("daily-overview-session-ended",()=>{stopMonthlyAwardMotion();monthlyAwardState.snapshot=null;monthlyAwardState.imageUrl="";monthlyAwardState.winnerNote="";monthlyAwardState.winnerNoteUpdatedAt="";monthlyAwardState.loaded=false;renderMonthlyProcessorAwards()});
 function shiftISODate(date,delta){const[y,m,d]=String(date||"").split("-").map(Number),x=new Date(Date.UTC(y,m-1,d+delta));return`${x.getUTCFullYear()}-${String(x.getUTCMonth()+1).padStart(2,"0")}-${String(x.getUTCDate()).padStart(2,"0")}`}
 let lastPeriodComparison=null;
 function comparisonPeriodLabel(mode,value){
@@ -5253,7 +5309,15 @@ function activateManagementTab(name){
  b.classList.add("active");const panel=document.getElementById("mgmt-"+name);if(panel)panel.classList.add("active")
 }
 function openManagementFor(name){managementRequestedTab=name;const nav=document.querySelector('[data-page="management"]');if(nav)nav.click();if(managementUnlocked)activateManagementTab(name)}
-document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.page).classList.add("active");pageTitle.textContent=b.textContent.replace(/^[^A-Za-z]+/,"").replace("🔒","").trim();if(b.dataset.page==="management"&&!managementUnlocked){managementGate.style.display="block";managementContent.classList.remove("unlocked")}renderRealtimeVisiblePage(b.dataset.page);window.scrollTo({top:0,behavior:"smooth"})}));
+function placeGlobalFiltersForPage(pageId){
+ const filters=document.getElementById("globalFilters"),mobileRow=document.getElementById("mobileFilterToggle")?.closest(".mobile-filter-row"),home=document.getElementById("globalFiltersHome"),dock=document.getElementById("overviewFilterDock");
+ if(!filters||!mobileRow||!home||!dock)return;
+ const target=pageId==="overview"?dock:home;
+ if(mobileRow.parentElement!==target)target.appendChild(mobileRow);
+ if(filters.parentElement!==target)target.appendChild(filters)
+}
+placeGlobalFiltersForPage(document.querySelector(".page.active")?.id||"overview");
+document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.page).classList.add("active");placeGlobalFiltersForPage(b.dataset.page);pageTitle.textContent=b.textContent.replace(/^[^A-Za-z]+/,"").replace("🔒","").trim();if(b.dataset.page==="management"&&!managementUnlocked){managementGate.style.display="block";managementContent.classList.remove("unlocked")}renderRealtimeVisiblePage(b.dataset.page);window.scrollTo({top:0,behavior:"smooth"})}));
 quickTodayBtn?.addEventListener("click",()=>applyQuickGlobalDate("today"));
 quickYesterdayBtn?.addEventListener("click",()=>applyQuickGlobalDate("yesterday"));
 quickMonthBtn?.addEventListener("click",()=>applyQuickGlobalDate("month"));
