@@ -121,4 +121,83 @@ async function loadData(silent=false){
   if(!silent){const el=q("ctNotice");if(el){el.hidden=false;el.classList.remove("bad");el.textContent="Loading Chanda Tracker…"}}
   try{
     const result=await Promise.all([
-      fetchAll("quality_chanda_members","id,source_user_id,source_initial,name,designation,system_role,team_name,phone,joining_date,birthday,active,source,created_at,updated_at",
+      fetchAll("quality_chanda_members","id,source_user_id,source_initial,name,designation,system_role,team_name,phone,joining_date,birthday,active,source,created_at,updated_at","name",true),
+      fetchAll("quality_chanda_events","id,title,event_type,event_date,target_member_id,contribution_mode,per_head_amount,exclude_target,status,notes,created_by,created_by_name,created_by_initial,owner_user_id,owner_name,owner_initial,created_at,updated_at,closed_at","event_date",false),
+      fetchAll("quality_chanda_event_members","id,event_id,member_id,member_name,member_initial,member_designation,expected_amount,excluded,exclusion_reason,created_at,updated_at","created_at",true),
+      fetchAll("quality_chanda_payments","id,event_id,event_member_id,amount,payment_date,payment_method,note,entered_by,created_at,updated_at","created_at",true),
+      fetchAll("quality_chanda_expenses","id,event_id,title,category,amount,expense_date,payment_method,paid_by,note,entered_by,created_at,updated_at","expense_date",true),
+      fetchAll("quality_chanda_month_closings","month,opening_balance,total_collection,total_expense,closing_balance,event_count,closed_at,closed_by","month",false)
+    ]);
+    [members,events,rosters,payments,expenses,closings]=result;
+    if(selectedEventId&&!events.some(e=>e.id===selectedEventId))selectedEventId="";
+    renderAll();
+    subscribeRealtime();
+    const el=q("ctNotice");if(el&&!silent)el.hidden=true;
+  }catch(error){
+    console.error("Chanda Tracker load failed",error);
+    notify(error.message||String(error),true);
+  }finally{loading=false}
+}
+function renderAll(){
+  viewer=currentViewer()||viewer;
+  q("ctNewEventBtn").style.display=can("chanda.create")?"":"none";
+  q("ctNewMemberBtn").style.display=can("chanda.members.manage")?"":"none";
+  renderStats();renderDashboard();renderEvents();renderMembers();renderClosings();populateEventTargets();
+}
+function renderStats(){
+  const list=currentMonthEvents();
+  const opening=openingBalance();
+  const totals=list.reduce((acc,e)=>{const m=eventMetrics(e);acc.collection+=m.collected;acc.expense+=m.expense;acc.due+=m.due;if(["Draft","Open"].includes(e.status))acc.active++;return acc},{collection:0,expense:0,due:0,active:0});
+  q("ctStatOpening").textContent=money(opening);
+  q("ctStatCollection").textContent=money(totals.collection);
+  q("ctStatExpense").textContent=money(totals.expense);
+  q("ctStatBalance").textContent=money(opening+totals.collection-totals.expense);
+  q("ctStatDue").textContent=money(totals.due);
+  q("ctStatEvents").textContent=String(totals.active);
+}
+function eventCardHtml(event){
+  const m=eventMetrics(event),person=members.find(x=>x.id===event.target_member_id);
+  return `<article class="ct-event-card ${selectedEventId===event.id?"selected":""}" data-ct-event="${safe(event.id)}">
+    <div class="ct-event-main"><span class="ct-status ${statusClass(event.status)}">${safe(event.status)}</span><b>${safe(event.title)}</b><span>${safe(event.event_type)} • ${fmtDate(event.event_date)}${person?` • For ${safe(person.name)}`:""}</span></div>
+    <div class="ct-event-metric"><b>${money(m.collected)}</b><span>Collected</span></div>
+    <div class="ct-event-metric"><b>${money(m.due)}</b><span>Due</span></div>
+    <div class="ct-event-metric"><b>${money(m.expense)}</b><span>Expense</span></div>
+    <div class="ct-event-metric"><b>${money(m.balance)}</b><span>Event Balance</span></div>
+    <div class="ct-event-arrow">›</div>
+  </article>`;
+}
+function renderDashboard(){
+  const key=currentMonthKey(),list=currentMonthEvents().sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)));
+  q("ctDashboardEvents").innerHTML=list.length?list.map(eventCardHtml).join(""):`<div class="ct-empty">No event created for ${safe(monthLabel(key))} yet.</div>`;
+  q("ctBirthdayMonth").textContent=monthLabel(key);
+  const month=key.slice(5,7),today=todayISO();
+  const bdays=members.filter(m=>m.active&&m.birthday&&String(m.birthday).slice(5,7)===month).sort((a,b)=>String(a.birthday).slice(5).localeCompare(String(b.birthday).slice(5)));
+  q("ctBirthdays").innerHTML=bdays.length?bdays.map(m=>{
+    const md=String(m.birthday).slice(5),date=`${key.slice(0,4)}-${md}`,tag=date===today?"Today":date>today?"Upcoming":"Passed";
+    return `<div class="ct-birthday"><div><b>${safe(m.name)}${m.source_initial?` • ${safe(m.source_initial)}`:""}</b><span>${safe(m.designation||m.system_role||"Department Member")} • ${safe(tag)}</span></div><span class="ct-birthday-date">${fmtDate(date)}</span></div>`;
+  }).join(""):`<div class="ct-empty">No birthday is recorded for ${safe(monthLabel(key))}. Add birthday dates from Members.</div>`;
+}
+function filteredEvents(){
+  const status=q("ctEventStatusFilter").value,owner=q("ctEventOwnerFilter").value;
+  return events.filter(e=>(!status||e.status===status)&&(!owner||owner!=="mine"||e.owner_user_id===viewer?.id));
+}
+function renderEvents(){
+  const list=filteredEvents();
+  q("ctEventList").innerHTML=list.length?list.map(eventCardHtml).join(""):`<div class="ct-empty">No event matches this view.</div>`;
+  renderEventDetail();
+}
+function paymentStatus(event,roster,paid){
+  if(roster.excluded)return{key:"excluded",label:"Excluded",due:0};
+  if(event.contribution_mode==="flexible")return paid>0?{key:"paid",label:"Contributed",due:0}:{key:"due",label:"No Contribution",due:0};
+  const expected=Number(roster.expected_amount)||0,due=Math.max(0,expected-paid);
+  if(expected>0&&paid>=expected)return{key:"paid",label:"Paid",due:0};
+  if(paid>0)return{key:"partial",label:"Partial",due};
+  return{key:"due",label:"Due",due};
+}
+function renderPaymentDetails(event,roster,editable){
+  const list=memberPayments(roster.id);
+  if(!list.length)return`<small style="color:var(--muted)">—</small>`;
+  return list.map(p=>`<div style="display:flex;align-items:center;gap:4px;margin:2px 0;white-space:nowrap"><small>${fmtDate(p.payment_date)} • ${safe(p.payment_method)} • ${money(p.amount)}</small>${editable?`<button class="btn" style="padding:2px 4px;font-size:8px!important" data-ct-delete-payment="${safe(p.id)}" title="Delete this payment">×</button>`:""}</div>`).join("");
+}
+function eligibleOwners(){
+  return members
