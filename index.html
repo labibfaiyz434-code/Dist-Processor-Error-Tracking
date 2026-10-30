@@ -2914,10 +2914,10 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
     <label>Event Name<input id="ctEventTitle" maxlength="160" placeholder="e.g. Rima Birthday"></label>
     <label>Event Type<select id="ctEventType"><option>Birthday</option><option>Farewell</option><option>Eid</option><option>Picnic</option><option>Other</option></select></label>
     <label>Event Date<input id="ctEventDate" type="date"></label>
-    <label>For Member (optional)<select id="ctEventTarget"><option value="">No specific member</option></select></label>
+    <label>Event Person (Farewell / Other)<select id="ctEventTarget"><option value="">No specific member</option></select></label>
     <label>Contribution Type<select id="ctContributionMode"><option value="fixed">Fixed per head</option><option value="flexible">Flexible / whatever they want</option></select></label>
     <label>Per Head Amount (৳)<input id="ctPerHeadAmount" type="number" min="0" step="1" value="0"></label>
-    <label class="wide ct-check"><input id="ctExcludeTarget" type="checkbox" checked> Exclude the event person from contribution</label>
+    <label class="wide ct-check"><input id="ctExcludeTarget" type="checkbox" checked> Exclude the selected event person from contribution</label>
     <label class="wide">Note<textarea id="ctEventNote" maxlength="1000" placeholder="Optional event details"></textarea></label>
    </div>
    <div class="ct-form-msg" id="ctEventFormMsg">Reviewer, Team Lead, Manager, Admin and System Owner can create events. Only the event owner manages contribution entries. Farewell events are hidden from the selected member.</div>
@@ -7605,5 +7605,5 @@ root.querySelectorAll('#eaRmddead input,#eaRmddead select').forEach(e=>e.addEven
 calcLive();calcDead();
 })();
 </script>
-<script src="chanda.js?v=88a2ce242bd8"></script>
+<script src="chanda.js?v=35badb6c301c"></script>
 </body></html>
