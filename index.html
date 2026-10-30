@@ -2461,7 +2461,7 @@ body.dark .password-reset-row{background:#171b24;border-color:#514525}
 .ct-expense-form{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}.ct-expense-form .wide{grid-column:1/-1}.ct-expense-form input,.ct-expense-form select,.ct-expense-form textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:8px;font-size:10px}.ct-expense-form textarea{min-height:58px;resize:vertical}
 .ct-expense-list{display:grid;gap:7px}.ct-expense-item{display:grid;grid-template-columns:1fr auto;gap:7px;padding:8px 9px;border:1px solid var(--line);border-radius:8px}.ct-expense-item b{font-size:10px}.ct-expense-item small{display:block;color:var(--muted);font-size:8.5px;margin-top:2px}.ct-expense-item strong{font-size:10px}.ct-expense-item .btn{grid-column:2;padding:4px 6px;font-size:8px!important}
 .ct-owner-note{margin-top:8px;padding:8px 9px;border-radius:8px;background:color-mix(in srgb,var(--accent) 6%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line));font-size:9.5px;color:var(--muted)}
-.ct-member-table{min-width:1050px}.ct-member-actions{display:flex;gap:5px}.ct-member-actions .btn{padding:5px 7px;font-size:8.5px!important}
+.ct-member-table{min-width:850px}.ct-member-actions{display:flex;gap:5px}.ct-member-actions .btn{padding:5px 7px;font-size:8.5px!important}
 .ct-closing-table{min-width:760px}
 .ct-modal{position:fixed;inset:0;z-index:10050;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(6,12,24,.54);backdrop-filter:blur(5px)}.ct-modal.show{display:flex}
 .ct-modal-card{width:min(720px,96vw);max-height:92vh;overflow:auto;border:1px solid var(--line);border-radius:15px;background:var(--card);box-shadow:0 26px 70px rgba(0,0,0,.24);padding:17px}
@@ -2849,7 +2849,7 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
 <section class="page" id="chanda-tracker">
  <div class="ct-shell">
   <div class="ct-hero">
-   <div class="ct-hero-copy"><div class="ct-kicker">Daily Operations • Department Fund</div><h2>Chanda Tracker</h2><p>Manage department members, event-wise contribution, paid / partial / due status, expenses, carry-forward balance and final PDF reports. Previous-month transaction details are automatically cleared after the month closes; only the Month Closing Summary and balance remain.</p></div>
+   <div class="ct-hero-copy"><div class="ct-kicker">Daily Operations • Department Fund</div><h2>Chanda Tracker</h2><p>Simple department contribution tracking for birthdays, farewells and other occasions. Copy due names directly to Teams, keep member DOB/DOH records, generate PDF reports, and carry only the final remaining amount into the next month.</p></div>
    <div class="ct-hero-actions"><button class="btn" id="ctRefreshBtn" type="button">↻ Refresh</button><button class="btn" id="ctMonthPdfBtn" type="button">PDF • This Month</button><button class="btn" id="ctNewMemberBtn" type="button">＋ Add Member</button><button class="btn primary" id="ctNewEventBtn" type="button">＋ New Event</button></div>
   </div>
   <div class="ct-notice" id="ctNotice" hidden></div>
@@ -2857,10 +2857,10 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
   <div class="ct-stats">
    <div class="ct-stat"><span>Opening Balance</span><b id="ctStatOpening">৳0</b><small>Carry forward</small></div>
    <div class="ct-stat"><span>This Month Collection</span><b id="ctStatCollection">৳0</b><small>All payments</small></div>
-   <div class="ct-stat"><span>This Month Expense</span><b id="ctStatExpense">৳0</b><small>All event expenses</small></div>
-   <div class="ct-stat"><span>Current Balance</span><b id="ctStatBalance">৳0</b><small>Opening + collection − expense</small></div>
+   <div class="ct-stat"><span>Current Carry Forward</span><b id="ctStatCarry">৳0</b><small>Opening + closed-event remainder</small></div>
    <div class="ct-stat"><span>Total Due</span><b id="ctStatDue">৳0</b><small>Fixed contribution events</small></div>
    <div class="ct-stat"><span>Active Events</span><b id="ctStatEvents">0</b><small>Draft / Open</small></div>
+   <div class="ct-stat"><span>Birthdays This Month</span><b id="ctStatBirthdays">0</b><small>From department DOB list</small></div>
   </div>
 
   <div class="ct-tabs" role="tablist">
@@ -2873,7 +2873,7 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
   <div class="ct-panel active" data-ct-panel="dashboard">
    <div class="ct-grid-2">
     <div class="ct-card">
-     <div class="ct-card-head"><div><h3>Current Month Events</h3><p>Collection, expense and outstanding contribution at a glance.</p></div><button class="btn" id="ctViewAllEventsBtn" type="button">View Events</button></div>
+     <div class="ct-card-head"><div><h3>Current Month Events</h3><p>Collection, paid members, due and carry-forward at a glance.</p></div><button class="btn" id="ctViewAllEventsBtn" type="button">View Events</button></div>
      <div class="ct-event-cards" id="ctDashboardEvents"><div class="ct-empty">Loading events…</div></div>
     </div>
     <div class="ct-card">
@@ -2889,11 +2889,11 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
      <select class="select" id="ctEventStatusFilter"><option value="">All Status</option><option>Draft</option><option>Open</option><option>Closed</option><option>Cancelled</option></select>
      <select class="select" id="ctEventOwnerFilter"><option value="">All Events</option><option value="mine">My Events</option></select>
      <div class="ct-toolbar-spacer"></div>
-     <span class="note">Click an event to open contribution & expense details.</span>
+     <span class="note">Click an event to open contribution, due and report details.</span>
     </div>
     <div class="ct-event-cards" id="ctEventList"><div class="ct-empty">Loading events…</div></div>
    </div>
-   <div class="ct-card" style="margin-top:14px" id="ctEventDetail"><div class="ct-event-detail-empty">Select an event to view contribution, due, expense and report controls.</div></div>
+   <div class="ct-card" style="margin-top:14px" id="ctEventDetail"><div class="ct-event-detail-empty">Select an event to view contribution, due and report controls.</div></div>
   </div>
 
   <div class="ct-panel" data-ct-panel="members">
@@ -2904,14 +2904,14 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
      <div class="ct-toolbar-spacer"></div>
      <span class="note">Existing DAILY OVERVIEW users are pulled in automatically. Manual members can also be added.</span>
     </div>
-    <div class="ct-table-wrap"><table class="ct-table ct-member-table"><thead><tr><th>Member</th><th>Designation / Role</th><th>Team</th><th>Phone</th><th>Joining Date</th><th>Birthday</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ctMemberRows"><tr><td colspan="8" class="ct-empty">Loading members…</td></tr></tbody></table></div>
+    <div class="ct-table-wrap"><table class="ct-table ct-member-table"><thead><tr><th>Member</th><th>Birthday</th><th>DOH</th><th>Designation / Role</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ctMemberRows"><tr><td colspan="7" class="ct-empty">Loading members…</td></tr></tbody></table></div>
    </div>
   </div>
 
   <div class="ct-panel" data-ct-panel="closings">
    <div class="ct-card">
-    <div class="ct-card-head"><div><h3>Month Closing Summary</h3><p>Permanent summary only. Detailed previous-month events, payments and expenses are automatically removed after rollover.</p></div></div>
-    <div class="ct-table-wrap"><table class="ct-table ct-closing-table"><thead><tr><th>Month</th><th>Opening</th><th>Collection</th><th>Expense</th><th>Closing / Carry Forward</th><th>Events</th><th>Closed</th></tr></thead><tbody id="ctClosingRows"><tr><td colspan="7" class="ct-empty">No month closing yet.</td></tr></tbody></table></div>
+    <div class="ct-card-head"><div><h3>Month Closing Summary</h3><p>Permanent summary only. Detailed previous-month events and payments are automatically removed after rollover.</p></div></div>
+    <div class="ct-table-wrap"><table class="ct-table ct-closing-table"><thead><tr><th>Month</th><th>Opening</th><th>Collection</th><th>Carry Forward Added</th><th>Closing / Carry Forward</th><th>Events</th><th>Closed</th></tr></thead><tbody id="ctClosingRows"><tr><td colspan="7" class="ct-empty">No month closing yet.</td></tr></tbody></table></div>
    </div>
   </div>
  </div>
@@ -2929,7 +2929,7 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
     <label class="wide ct-check"><input id="ctExcludeTarget" type="checkbox" checked> Exclude the event person from contribution</label>
     <label class="wide">Note<textarea id="ctEventNote" maxlength="1000" placeholder="Optional event details"></textarea></label>
    </div>
-   <div class="ct-form-msg" id="ctEventFormMsg">Reviewer, Team Lead, Manager, Admin and System Owner can create events. Only the event owner manages collection and expenses.</div>
+   <div class="ct-form-msg" id="ctEventFormMsg">Reviewer, Team Lead, Manager, Admin and System Owner can create events. Only the event owner manages contribution entries. Farewell events are hidden from the selected member.</div>
    <div class="ct-modal-actions"><button class="btn" data-ct-close="ctEventModal" type="button">Cancel</button><button class="btn primary" id="ctCreateEventBtn" type="button">Create Event</button></div>
   </div>
  </div>
