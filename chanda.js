@@ -417,4 +417,67 @@ async function closeEvent(eventId){
 async function cancelEvent(eventId){
   const event=events.find(e=>e.id===eventId),db=client();if(!event||!db||!canEditEvent(event))return;
   if(!confirm(`Cancel "${event.title}"? The event will remain visible until month rollover.`))return;
-  try{c
+  try{const {error}=await db.from("quality_chanda_events").update({status:"Cancelled"}).eq("id",event.id);if(error)throw error;await loadData(true);notify("Event cancelled.")}catch(error){notify(error.message||String(error),true)}
+}
+async function transferOwner(){
+  const event=events.find(e=>e.id===selectedEventId),select=q("ctTransferOwner"),db=client();if(!event||!select||!db||!canTransfer())return;
+  const member=members.find(m=>m.id===select.value&&m.source_user_id);
+  if(!member)return;
+  if(member.source_user_id===event.owner_user_id){notify("This person already owns the event.",true);return}
+  if(!confirm(`Transfer "${event.title}" to ${member.name} (${member.system_role})?`))return;
+  try{
+    const {error}=await db.from("quality_chanda_events").update({owner_user_id:member.source_user_id,owner_name:member.name,owner_initial:member.source_initial||""}).eq("id",event.id);
+    if(error)throw error;await loadData(true);notify("Event ownership transferred.");
+  }catch(error){notify(error.message||String(error),true)}
+}
+function subscribeRealtime(){
+  const db=client();if(!db||channel)return;
+  const schedule=()=>{clearTimeout(reloadTimer);reloadTimer=setTimeout(()=>loadData(true),350)};
+  channel=db.channel("daily-overview-chanda-live")
+   .on("postgres_changes",{event:"*",schema:"public",table:"quality_chanda_members"},schedule)
+   .on("postgres_changes",{event:"*",schema:"public",table:"quality_chanda_events"},schedule)
+   .on("postgres_changes",{event:"*",schema:"public",table:"quality_chanda_event_members"},schedule)
+   .on("postgres_changes",{event:"*",schema:"public",table:"quality_chanda_payments"},schedule)
+   .on("postgres_changes",{event:"*",schema:"public",table:"quality_chanda_expenses"},schedule)
+   .on("postgres_changes",{event:"*",schema:"public",table:"quality_chanda_month_closings"},schedule)
+   .subscribe();
+}
+function clearState(){
+  try{if(channel)client()?.removeChannel(channel)}catch(_){}
+  channel=null;members=[];events=[];rosters=[];payments=[];expenses=[];closings=[];selectedEventId="";viewer=null;
+}
+q("ctRefreshBtn")?.addEventListener("click",()=>loadData(false));
+q("ctNewEventBtn")?.addEventListener("click",openEventForm);
+q("ctNewMemberBtn")?.addEventListener("click",()=>openMemberForm(""));
+q("ctMonthPdfBtn")?.addEventListener("click",()=>{try{generateMonthPdf()}catch(e){notify(e.message||String(e),true)}});
+q("ctViewAllEventsBtn")?.addEventListener("click",()=>setTab("events"));
+q("ctContributionMode")?.addEventListener("change",()=>{const flexible=q("ctContributionMode").value==="flexible";q("ctPerHeadAmount").disabled=flexible;if(flexible)q("ctPerHeadAmount").value="0"});
+q("ctCreateEventBtn")?.addEventListener("click",createEvent);
+q("ctSaveMemberBtn")?.addEventListener("click",saveMember);
+q("ctSavePaymentBtn")?.addEventListener("click",savePayment);
+q("ctEventStatusFilter")?.addEventListener("change",renderEvents);
+q("ctEventOwnerFilter")?.addEventListener("change",renderEvents);
+q("ctMemberSearch")?.addEventListener("input",renderMembers);
+q("ctMemberStatusFilter")?.addEventListener("change",renderMembers);
+qa("[data-ct-tab]").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.ctTab)));
+qa("[data-ct-close]").forEach(b=>b.addEventListener("click",()=>closeModal(b.dataset.ctClose)));
+qa(".ct-modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal(m.id)}));
+root.addEventListener("click",e=>{
+  const eventCard=e.target.closest("[data-ct-event]");
+  if(eventCard){selectedEventId=eventCard.dataset.ctEvent;setTab("events");renderEvents();return}
+  const edit=e.target.closest("[data-ct-member-edit]");if(edit){openMemberForm(edit.dataset.ctMemberEdit);return}
+  const toggle=e.target.closest("[data-ct-member-toggle]");if(toggle){toggleMember(toggle.dataset.ctMemberToggle);return}
+  const pay=e.target.closest("[data-ct-pay]");if(pay){openPaymentForm(pay.dataset.ctPay);return}
+  const delPay=e.target.closest("[data-ct-delete-payment]");if(delPay){deletePayment(delPay.dataset.ctDeletePayment);return}
+  const delExpense=e.target.closest("[data-ct-delete-expense]");if(delExpense){deleteExpense(delExpense.dataset.ctDeleteExpense);return}
+  const report=e.target.closest("[data-ct-report]");if(report){try{generateEventPdf(report.dataset.ctReport)}catch(err){notify(err.message||String(err),true)}return}
+  const close=e.target.closest("[data-ct-close-event]");if(close){closeEvent(close.dataset.ctCloseEvent);return}
+  const cancel=e.target.closest("[data-ct-cancel-event]");if(cancel){cancelEvent(cancel.dataset.ctCancelEvent);return}
+  if(e.target.closest("#ctAddExpenseBtn")){addExpense();return}
+  if(e.target.closest("#ctTransferBtn")){transferOwner();return}
+});
+document.querySelector('.navbtn[data-page="chanda-tracker"]')?.addEventListener("click",()=>{setTimeout(()=>loadData(true),0)});
+window.addEventListener("daily-overview-session-ready",ev=>{viewer=ev.detail||currentViewer();loadData(false)});
+window.addEventListener("daily-overview-session-ended",()=>clearState());
+if(currentViewer())setTimeout(()=>loadData(true),0);
+})();
