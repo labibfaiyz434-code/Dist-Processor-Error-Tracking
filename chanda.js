@@ -249,3 +249,60 @@ function renderEventDetail(){
    <div class="ct-detail-grid" style="margin-top:10px">
     <div class="ct-subcard"><h4>Contribution Register</h4><div class="ct-table-wrap"><table class="ct-table"><thead><tr><th>Member</th><th>Expected</th><th>Paid</th><th>Due</th><th>Status</th><th>Payment History</th><th></th></tr></thead><tbody>${contributionRows||`<tr><td colspan="7" class="ct-empty">No roster.</td></tr>`}</tbody></table></div></div>
     <div class="ct-subcard"><h4>Expenses</h4>${expenseForm}<div class="ct-expense-list">${expenseList}</div><div class="ct-report-hint">Event report includes full contribution, due and expense details.</div></div>
+   </div>`;
+}
+function renderMembers(){
+  const term=String(q("ctMemberSearch").value||"").trim().toLowerCase(),status=q("ctMemberStatusFilter").value;
+  const list=members.filter(m=>{
+    const hay=[m.name,m.source_initial,m.designation,m.system_role,m.team_name,m.phone].join(" ").toLowerCase();
+    return(!term||hay.includes(term))&&(!status||(status==="active"?m.active:!m.active));
+  });
+  q("ctMemberRows").innerHTML=list.length?list.map(m=>`<tr>
+    <td><div class="ct-person"><b>${safe(m.name)}</b><small>${safe(m.source_initial||"—")} • ${m.source==="system"?"DAILY OVERVIEW":"Manual member"}</small></div></td>
+    <td>${safe(m.designation||m.system_role||"—")}</td><td>${safe(m.team_name||"—")}</td><td>${safe(m.phone||"—")}</td>
+    <td>${fmtDate(m.joining_date)}</td><td>${fmtDate(m.birthday)}</td><td><span class="ct-status ${m.active?"open":"cancelled"}">${m.active?"Active":"Inactive"}</span></td>
+    <td>${can("chanda.members.manage")?`<div class="ct-member-actions"><button class="btn" data-ct-member-edit="${safe(m.id)}" type="button">Edit</button><button class="btn" data-ct-member-toggle="${safe(m.id)}" type="button">${m.active?"Set Inactive":"Set Active"}</button></div>`:""}</td>
+  </tr>`).join(""):`<tr><td colspan="8" class="ct-empty">No member matches this view.</td></tr>`;
+}
+function renderClosings(){
+  q("ctClosingRows").innerHTML=closings.length?closings.map(x=>`<tr><td><b>${safe(monthLabel(String(x.month).slice(0,7)))}</b></td><td class="ct-money">${money(x.opening_balance)}</td><td class="ct-money">${money(x.total_collection)}</td><td class="ct-money">${money(x.total_expense)}</td><td class="ct-money"><b>${money(x.closing_balance)}</b></td><td>${Number(x.event_count)||0}</td><td>${stamp(x.closed_at)}</td></tr>`).join(""):`<tr><td colspan="7" class="ct-empty">No month closing summary yet. The first summary is created automatically when a month rolls over.</td></tr>`;
+}
+function populateEventTargets(){
+  const select=q("ctEventTarget");if(!select)return;
+  const current=select.value;
+  select.innerHTML=`<option value="">No specific member</option>`+members.filter(m=>m.active).map(m=>`<option value="${safe(m.id)}">${safe(m.source_initial||"")} — ${safe(m.name)}</option>`).join("");
+  if([...select.options].some(o=>o.value===current))select.value=current;
+}
+function openEventForm(){
+  if(!can("chanda.create"))return;
+  q("ctEventTitle").value="";q("ctEventType").value="Birthday";q("ctEventDate").value=todayISO();q("ctEventTarget").value="";q("ctContributionMode").value="fixed";q("ctPerHeadAmount").value="0";q("ctPerHeadAmount").disabled=false;q("ctExcludeTarget").checked=true;q("ctEventNote").value="";q("ctEventFormMsg").textContent="All active members will be added automatically when the event is created.";q("ctEventFormMsg").classList.remove("bad");openModal("ctEventModal");
+}
+async function createEvent(){
+  const db=client(),title=q("ctEventTitle").value.trim(),eventDate=q("ctEventDate").value,type=q("ctEventType").value,mode=q("ctContributionMode").value,target=q("ctEventTarget").value||null,amount=Number(q("ctPerHeadAmount").value)||0,note=q("ctEventNote").value.trim(),btn=q("ctCreateEventBtn");
+  if(!db||!viewer)return;
+  if(title.length<2||!eventDate){q("ctEventFormMsg").textContent="Event name and date are required.";q("ctEventFormMsg").classList.add("bad");return}
+  if(mode==="fixed"&&amount<=0){q("ctEventFormMsg").textContent="Enter a per-head amount greater than zero for a fixed event.";q("ctEventFormMsg").classList.add("bad");return}
+  try{
+    btn.disabled=true;btn.textContent="Creating…";
+    const payload={title,event_type:type,event_date:eventDate,target_member_id:target,contribution_mode:mode,per_head_amount:mode==="fixed"?amount:0,exclude_target:q("ctExcludeTarget").checked,status:"Open",notes:note||null,created_by:viewer.id,created_by_name:viewer.name,created_by_initial:viewer.initial,owner_user_id:viewer.id,owner_name:viewer.name,owner_initial:viewer.initial};
+    const {data,error}=await db.from("quality_chanda_events").insert(payload).select("id").single();
+    if(error)throw error;
+    selectedEventId=data.id;closeModal("ctEventModal");await loadData(true);setTab("events");notify("Event created. Active members were added to the contribution roster.");
+  }catch(error){q("ctEventFormMsg").textContent=error.message||String(error);q("ctEventFormMsg").classList.add("bad")}
+  finally{btn.disabled=false;btn.textContent="Create Event"}
+}
+function openMemberForm(id=""){
+  if(!can("chanda.members.manage"))return;
+  editMemberId=id;
+  const m=members.find(x=>x.id===id);
+  q("ctMemberModalTitle").textContent=m?"Edit Department Member":"Add Department Member";
+  q("ctMemberName").value=m?.name||"";q("ctMemberInitial").value=m?.source_initial||"";q("ctMemberDesignation").value=m?.designation||"";q("ctMemberTeam").value=m?.team_name||"";q("ctMemberPhone").value=m?.phone||"";q("ctMemberJoining").value=m?.joining_date||"";q("ctMemberBirthday").value=m?.birthday||"";q("ctMemberActive").value=String(m?.active!==false);
+  q("ctMemberFormMsg").textContent=m?.source==="system"?"Linked DAILY OVERVIEW member. Name and department details can be completed here without changing login access.":"";
+  q("ctMemberFormMsg").classList.remove("bad");openModal("ctMemberModal");
+}
+async function saveMember(){
+  const db=client(),btn=q("ctSaveMemberBtn"),name=q("ctMemberName").value.trim(),initial=q("ctMemberInitial").value.trim().toUpperCase();
+  if(!db||!viewer)return;
+  if(!name){q("ctMemberFormMsg").textContent="Member name is required.";q("ctMemberFormMsg").classList.add("bad");return}
+  if(!editMemberId&&initial&&members.some(m=>String(m.source_initial||"").toUpperCase()===initial)){q("ctMemberFormMsg").textContent="This initial / ID already exists. Edit the existing member instead.";q("ctMemberFormMsg").classList.add("bad");return}
+  const base={name,source_initial:initial||null,designation:q("ctMemberDesignation").value.trim()||null,team_name:q("ctMemberTeam").value.trim()||null,phon
