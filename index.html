@@ -2855,9 +2855,7 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
   <div class="ct-notice" id="ctNotice" hidden></div>
 
   <div class="ct-stats">
-   <div class="ct-stat"><span>Opening Balance</span><b id="ctStatOpening">৳0</b><small>Carry forward</small></div>
    <div class="ct-stat"><span>This Month Collection</span><b id="ctStatCollection">৳0</b><small>All payments</small></div>
-   <div class="ct-stat"><span>Current Carry Forward</span><b id="ctStatCarry">৳0</b><small>Opening + closed-event remainder</small></div>
    <div class="ct-stat"><span>Total Due</span><b id="ctStatDue">৳0</b><small>Fixed contribution events</small></div>
    <div class="ct-stat"><span>Active Events</span><b id="ctStatEvents">0</b><small>Draft / Open</small></div>
    <div class="ct-stat"><span>Birthdays This Month</span><b id="ctStatBirthdays">0</b><small>From department DOB list</small></div>
@@ -2867,7 +2865,6 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
    <button class="ct-tab active" data-ct-tab="dashboard" type="button">Dashboard</button>
    <button class="ct-tab" data-ct-tab="events" type="button">Events</button>
    <button class="ct-tab" data-ct-tab="members" type="button">Members</button>
-   <button class="ct-tab" data-ct-tab="closings" type="button">Month Closings</button>
   </div>
 
   <div class="ct-panel active" data-ct-panel="dashboard">
@@ -2910,8 +2907,6 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
 
   <div class="ct-panel" data-ct-panel="closings">
    <div class="ct-card">
-    <div class="ct-card-head"><div><h3>Month Closing Summary</h3><p>Permanent summary only. Detailed previous-month events and payments are automatically removed after rollover.</p></div></div>
-    <div class="ct-table-wrap"><table class="ct-table ct-closing-table"><thead><tr><th>Month</th><th>Opening</th><th>Collection</th><th>Carry Forward Added</th><th>Closing / Carry Forward</th><th>Events</th><th>Closed</th></tr></thead><tbody id="ctClosingRows"><tr><td colspan="7" class="ct-empty">No month closing yet.</td></tr></tbody></table></div>
    </div>
   </div>
  </div>
