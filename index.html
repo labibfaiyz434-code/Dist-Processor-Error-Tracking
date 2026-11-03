@@ -7319,8 +7319,8 @@ System Owner will NOT approve or deny this request. The Team Lead will make the 
  const topTabs=q('eaTopTabs');
  function setWorkspaceTab(tab='home',options={load:true}){
   const allowed=new Set(['home','rmd','links']);if(!allowed.has(tab))tab='home';
-  qa('[data-ea-workspace-tab]').forEach(button=>{const active=button.dataset.eaWorkspaceTab===tab;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active))});
-  qa('#easy-access [data-ea-workspace-panel]').forEach(panel=>panel.classList.toggle('active',panel.dataset.eaWorkspacePanel===tab));
+  document.querySelectorAll('[data-ea-workspace-tab]').forEach(button=>{const active=button.dataset.eaWorkspaceTab===tab;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active))});
+  root.querySelectorAll('[data-ea-workspace-panel]').forEach(panel=>panel.classList.toggle('active',panel.dataset.eaWorkspacePanel===tab));
   if(tab==='links'&&options.load)loadLinks();
  }
  function showWorkspaceTabs(show){topTabs?.classList.toggle('show',!!show)}
