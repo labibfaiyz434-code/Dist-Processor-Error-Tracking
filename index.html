@@ -1945,6 +1945,16 @@ body.dark #anonymous-voice .av-privacy,body.dark #anonymous-voice .av-composer,b
 
 /* Easy Access — scoped to preserve the approved Access Master V7 design. */
 #easy-access .ea-shell{display:grid;gap:14px}
+.ea-top-tabs{display:none;align-items:center;gap:7px;min-width:0;flex-wrap:nowrap}
+.ea-top-tabs.show{display:flex}
+.ea-top-tab{appearance:none;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--muted);min-height:34px;padding:7px 12px;font:inherit;font-size:9px;font-weight:900;white-space:nowrap;cursor:pointer;transition:.18s ease}
+.ea-top-tab:hover{border-color:#b9c8e4;background:#f5f8fe;color:#274d8f}
+.ea-top-tab.active{border-color:#315fb8;background:#315fb8;color:#fff;box-shadow:0 5px 13px rgba(49,95,184,.18)}
+#easy-access .ea-workspace-panel{display:none}
+#easy-access .ea-workspace-panel.active{display:block}
+#easy-access .ea-workspace-panel[data-ea-workspace-panel="home"].active{display:grid;gap:14px}
+@media(max-width:1100px){.polished-page-title:has(.ea-top-tabs.show){align-items:flex-start;flex-direction:column;gap:5px}.ea-top-tabs.show{max-width:min(70vw,760px);overflow-x:auto;padding-bottom:2px}.ea-top-tab{flex:0 0 auto}}
+@media(max-width:680px){.ea-top-tabs.show{max-width:calc(100vw - 34px);width:100%}.ea-top-tab{min-height:32px;padding:6px 9px;font-size:8px}}
 #easy-access .ea-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:24px 26px;border-radius:16px;background:linear-gradient(118deg,#172b50 0%,#294f91 68%,#3c69bd 100%);color:#fff;box-shadow:0 18px 42px rgba(25,47,88,.17)}
 #easy-access .ea-hero:after{content:"";position:absolute;right:-72px;top:-105px;width:310px;height:310px;border-radius:50%;border:34px solid rgba(255,255,255,.07);box-shadow:0 0 0 34px rgba(255,255,255,.035)}
 #easy-access .ea-hero-copy{position:relative;z-index:1;max-width:760px}
@@ -2583,6 +2593,11 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
 <header class="top polished-top">
  <div class="polished-page-title">
    <div class="title" id="pageTitle">Executive Overview</div>
+   <div class="ea-top-tabs" id="eaTopTabs" role="tablist" aria-label="Easy Access sections">
+    <button class="ea-top-tab active" type="button" role="tab" aria-selected="true" data-ea-workspace-tab="home">Easy Access</button>
+    <button class="ea-top-tab" type="button" role="tab" aria-selected="false" data-ea-workspace-tab="rmd">RMD Calculator</button>
+    <button class="ea-top-tab" type="button" role="tab" aria-selected="false" data-ea-workspace-tab="links">Shared Website Links &amp; Login IDs</button>
+   </div>
    <div class="sub" id="topSub">Shared database not connected yet.</div>
  </div>
  <div class="topactions polished-actions">
@@ -3098,9 +3113,10 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
 
 <section class="page" id="easy-access">
  <div class="ea-shell">
+  <div class="ea-workspace-panel active" data-ea-workspace-panel="home">
   <div class="ea-hero">
-   <div class="ea-hero-copy"><div class="ea-eyebrow">Daily Work Utilities</div><h2>Easy Access</h2><p>Open trusted work resources, search the official Federal Reserve routing directory, and calculate age, service, Age Code and 401(k) RMDs from one clean workspace.</p></div>
-   <div class="ea-hero-badge">✓ Shared links • Secure management</div>
+   <div class="ea-hero-copy"><div class="ea-eyebrow">Daily Work Utilities</div><h2>Easy Access</h2><p>Search the official Federal Reserve routing directory and calculate age, service and Age Code from one clean workspace.</p></div>
+   <div class="ea-hero-badge">✓ Routing • Age &amp; Service</div>
   </div>
 
   <div class="ea-tools">
@@ -3131,8 +3147,9 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
     </div>
    </div>
   </div>
+  </div>
 
-
+  <div class="ea-workspace-panel" data-ea-workspace-panel="rmd">
   <div class="ea-card ea-rmd-card" id="eaRmdCalculator">
    <div class="ea-card-head">
     <div>
@@ -3218,7 +3235,9 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
     <div class="ea-rmd-footer"><b>Educational estimate only.</b> Uses IRS Single Life and Uniform Lifetime tables in effect since 2022. Joint Life Table coverage in this calculator is limited to the age ranges built into the supplied calculator. Confirm plan-specific requirements with the plan administrator or a tax professional.</div>
    </div>
   </div>
+  </div>
 
+  <div class="ea-workspace-panel" data-ea-workspace-panel="links">
   <div class="ea-card ea-links-card">
    <div class="ea-card-head"><div><h3>Shared Website Links &amp; Login IDs</h3><p>Keep existing Unify/RK login IDs together for quick copy and paste. Only System Owner and Admin maintain the website list.</p></div><div class="ea-card-head-tools"><button class="btn" id="eaRefreshLinks" type="button">↻ Refresh</button><span class="ea-card-icon">◎</span></div></div>
    <div class="ea-card-body">
@@ -3231,6 +3250,7 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
     </div>
     <div class="ea-link-list" id="eaLinkList"><div class="ea-result-empty">Open Easy Access to load shared links.</div></div>
    </div>
+  </div>
   </div>
   <div class="ea-credential-overlay" id="eaCredentialModal" aria-hidden="true">
    <div class="ea-credential-modal" role="dialog" aria-modal="true" aria-labelledby="eaCredentialTitle">
@@ -7296,9 +7316,18 @@ System Owner will NOT approve or deny this request. The Team Lead will make the 
  async function saveCredential(){const item=credentials.find(x=>x.id===credentialEditId),link=links.find(x=>x.id===credentialLinkId),account_label=q('eaCredentialLabel').value.trim(),username=q('eaCredentialUsername').value.trim(),password=q('eaCredentialPassword').value,button=q('eaCredentialSave');if(!link)return;if(!account_label){toast('Enter the ID Owner / Person Name.',true);return}if(!username){toast('Enter the existing username or login ID.',true);return}if(!item&&!password){toast('Enter the existing website password.',true);return}const message=item?`Update the saved ${link.site_name} login belonging to “${account_label}”? This does not change the external website account.`:`Save the existing ${link.site_name} login belonging to “${account_label}” for approved users to copy and paste?`;if(!confirm(message))return;try{button.disabled=true;button.textContent='Saving…';await window.dailyOverviewAdminAction('manage_easy_credential',{verb:item?'update':'create',id:item?.id,link_id:link.id,account_label,username,password,expected_version:item?.version});closeCredentialModal();loaded=false;await loadLinks(true);toast(item?'Saved login ID updated.':'Existing login ID saved.')}catch(error){toast(error.message||String(error),true)}finally{button.disabled=false;button.textContent=credentialEditId?'Save Changes':'Save Login ID'}}
  async function deleteCredential(id){const item=credentials.find(x=>x.id===id),link=links.find(x=>x.id===item?.link_id);if(!item||!confirm(`Remove the saved login belonging to “${item.account_label}” from ${link?.site_name||'this website'}? This does not delete the actual external website account.`))return;try{await window.dailyOverviewAdminAction('manage_easy_credential',{verb:'delete',id:item.id,expected_version:item.version});revealed.delete(id);loaded=false;await loadLinks(true);toast('Saved login ID removed.')}catch(error){toast(error.message||String(error),true)}}
  async function copyText(value,label){try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(value);else{const input=document.createElement('textarea');input.value=value;input.style.position='fixed';input.style.opacity='0';document.body.appendChild(input);input.select();document.execCommand('copy');input.remove()}toast(`${label} copied.`)}catch{toast(`Could not copy ${label.toLowerCase()}.`,true)}}
+ const topTabs=q('eaTopTabs');
+ function setWorkspaceTab(tab='home',options={load:true}){
+  const allowed=new Set(['home','rmd','links']);if(!allowed.has(tab))tab='home';
+  qa('[data-ea-workspace-tab]').forEach(button=>{const active=button.dataset.eaWorkspaceTab===tab;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active))});
+  qa('#easy-access [data-ea-workspace-panel]').forEach(panel=>panel.classList.toggle('active',panel.dataset.eaWorkspacePanel===tab));
+  if(tab==='links'&&options.load)loadLinks();
+ }
+ function showWorkspaceTabs(show){topTabs?.classList.toggle('show',!!show)}
+ topTabs?.addEventListener('click',event=>{const button=event.target.closest('[data-ea-workspace-tab]');if(button)setWorkspaceTab(button.dataset.eaWorkspaceTab)});
  q('eaAsOf').value=isoToday();['eaDob','eaAsOf','eaHireDate','eaTerminationDate'].forEach(enableDatePaste);q('eaCalculateAge').addEventListener('click',calculate);q('eaResetAge').addEventListener('click',resetAge);q('eaSearchAch').addEventListener('click',()=>launchRouting('ach'));q('eaSearchWire').addEventListener('click',()=>launchRouting('wire'));q('eaOpenDirectory').addEventListener('click',()=>window.open('https://www.frbservices.org/resources/e-payments-routing-directory/','_blank','noopener,noreferrer'));q('eaSaveLink').addEventListener('click',saveLink);q('eaCancelLinkEdit').addEventListener('click',clearLinkEditor);q('eaRefreshLinks').addEventListener('click',()=>loadLinks(true));q('eaCredentialSave').addEventListener('click',saveCredential);q('eaCredentialClose').addEventListener('click',closeCredentialModal);q('eaCredentialCancel').addEventListener('click',closeCredentialModal);q('eaCredentialModal').addEventListener('click',event=>{if(event.target===q('eaCredentialModal'))closeCredentialModal()});
  q('eaLinkList').addEventListener('click',event=>{const edit=event.target.closest('[data-ea-edit]'),del=event.target.closest('[data-ea-delete]'),add=event.target.closest('[data-ea-credential-add]'),editCredential=event.target.closest('[data-ea-credential-edit]'),deleteCredentialButton=event.target.closest('[data-ea-credential-delete]'),reveal=event.target.closest('[data-ea-reveal]'),copy=event.target.closest('[data-ea-copy]');if(edit)return editLink(edit.dataset.eaEdit);if(del)return deleteLink(del.dataset.eaDelete);if(add)return openCredentialModal(add.dataset.eaCredentialAdd);if(editCredential){const item=credentials.find(x=>x.id===editCredential.dataset.eaCredentialEdit);if(item)return openCredentialModal(item.link_id,item.id)}if(deleteCredentialButton)return deleteCredential(deleteCredentialButton.dataset.eaCredentialDelete);if(reveal){const id=reveal.dataset.eaReveal;revealed.has(id)?revealed.delete(id):revealed.add(id);return renderLinks()}if(copy){const item=credentials.find(x=>x.id===copy.dataset.eaCredential);if(item)return copyText(copy.dataset.eaCopy==='password'?item.password:item.username,copy.dataset.eaCopy==='password'?'Password':'Username')}});
- document.addEventListener('keydown',event=>{if(event.key==='Escape'&&q('eaCredentialModal').classList.contains('show'))closeCredentialModal()});document.querySelector('.navbtn[data-page="easy-access"]')?.addEventListener('click',()=>loadLinks());window.addEventListener('daily-overview-session-ready',event=>{viewer=event.detail;renderLinks();if(root.classList.contains('active'))loadLinks()});window.addEventListener('daily-overview-session-ended',()=>{viewer=null;links=[];credentials=[];revealed.clear();loaded=false;clearLinkEditor();closeCredentialModal();renderLinks()});if(window.dailyOverviewCurrentUser){viewer=window.dailyOverviewCurrentUser;renderLinks()}
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&q('eaCredentialModal').classList.contains('show'))closeCredentialModal()});document.querySelector('.navbtn[data-page="easy-access"]')?.addEventListener('click',()=>{showWorkspaceTabs(true);setWorkspaceTab('home',{load:false})});document.querySelectorAll('.navbtn[data-page]:not([data-page="easy-access"])').forEach(button=>button.addEventListener('click',()=>showWorkspaceTabs(false)));window.addEventListener('daily-overview-session-ready',event=>{viewer=event.detail;renderLinks();if(root.classList.contains('active')&&q('easy-access')?.querySelector('[data-ea-workspace-panel="links"].active'))loadLinks()});window.addEventListener('daily-overview-session-ended',()=>{viewer=null;links=[];credentials=[];revealed.clear();loaded=false;clearLinkEditor();closeCredentialModal();renderLinks()});if(window.dailyOverviewCurrentUser){viewer=window.dailyOverviewCurrentUser;renderLinks()}showWorkspaceTabs(root.classList.contains('active'));setWorkspaceTab('home',{load:false})
 })();
 </script>
 <script>
