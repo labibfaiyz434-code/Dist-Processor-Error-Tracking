@@ -6654,7 +6654,7 @@ const dailyTrendDefault=todayLocal().slice(0,7);$("monthCloseMonth").value=today
  async function restoreSavedSession(){const client=actionClient();const result=await client.auth.getSession();if(result.error)console.warn('Session read warning',result.error);return result.data?.session||null}
  async function offerBrowserPasswordSave(email,password){try{if(!email||!password)return;if('PasswordCredential' in window&&navigator.credentials?.store){const credential=new PasswordCredential({id:email,name:email,password});await navigator.credentials.store(credential)}}catch(_){}}
  window.dailyOverviewGetClient=actionClient;
- window.dailyOverviewAdminAction=async(action,payload={})=>{const client=actionClient(),{data:{session}}=await client.auth.getSession();if(!session)throw new Error('Your session expired. Sign in again.');const {data,error}=await client.functions.invoke('quality-admin',{body:{action,payload},headers:{Authorization:`Bearer ${session.access_token}`}});if(error)throw new Error(error.message||'Secure service request failed');if(data?.error)throw new Error(data.error);return data||{}};
+ window.dailyOverviewAdminAction=async(action,payload={})=>{const client=actionClient(),{data:{session}}=await client.auth.getSession();if(!session)throw new Error('Your session expired. Sign in again.');const {data,error}=await client.functions.invoke('quality-admin-secure',{body:{action,payload},headers:{Authorization:`Bearer ${session.access_token}`}});if(error)throw new Error(error.message||'Secure service request failed');if(data?.error)throw new Error(data.error);return data||{}};
 
 
  function updateCurrentIdentityUi(){
