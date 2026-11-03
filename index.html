@@ -1953,6 +1953,44 @@ body.dark #anonymous-voice .av-privacy,body.dark #anonymous-voice .av-composer,b
 #easy-access .ea-workspace-panel{display:none}
 #easy-access .ea-workspace-panel.active{display:block}
 #easy-access .ea-workspace-panel[data-ea-workspace-panel="home"].active{display:grid;gap:14px}
+.ea-top-tab-increment.active{background:linear-gradient(135deg,#6e39ff,#d037ff 55%,#ff5ca8);border-color:transparent;box-shadow:0 6px 18px rgba(151,59,255,.28)}
+#easy-access .ea-workspace-panel[data-ea-workspace-panel="increment"].active{display:block}
+#easy-access .ea-increment-stage{position:relative;isolation:isolate;min-height:clamp(560px,72vh,790px);overflow:hidden;display:grid;place-items:center;border:1px solid rgba(173,126,255,.25);border-radius:26px;background:radial-gradient(circle at 50% 42%,rgba(134,66,255,.28),transparent 30%),linear-gradient(145deg,#080819 0%,#11102d 45%,#150a2c 100%);box-shadow:0 28px 80px rgba(21,9,55,.3);color:#fff}
+#easy-access .ea-increment-gridfx{position:absolute;inset:0;z-index:-4;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(to bottom,transparent,black 20%,black 80%,transparent)}
+#easy-access .ea-increment-stage:before{content:"";position:absolute;inset:-45%;z-index:-3;background:conic-gradient(from 90deg,transparent 0 22%,rgba(111,61,255,.16) 31%,transparent 40% 58%,rgba(255,73,184,.12) 68%,transparent 77%);animation:eaIncrementSpin 26s linear infinite}
+#easy-access .ea-increment-stage:after{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(115deg,transparent 15%,rgba(255,255,255,.035) 42%,transparent 57%);transform:translateX(-100%);animation:eaIncrementSweep 7s ease-in-out infinite}
+#easy-access .ea-increment-orb{position:absolute;z-index:-1;border-radius:50%;filter:blur(18px);opacity:.65;animation:eaIncrementFloat 8s ease-in-out infinite alternate}
+#easy-access .ea-increment-orb-a{width:230px;height:230px;left:-80px;top:9%;background:radial-gradient(circle,#674bff 0%,rgba(103,75,255,0) 70%)}
+#easy-access .ea-increment-orb-b{width:280px;height:280px;right:-95px;bottom:4%;background:radial-gradient(circle,#ff3d9a 0%,rgba(255,61,154,0) 70%);animation-delay:-3s}
+#easy-access .ea-increment-sparks{position:absolute;inset:0;pointer-events:none}
+#easy-access .ea-increment-sparks i{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 13px #a77cff;opacity:.5;animation:eaIncrementSpark 4.8s ease-in-out infinite}
+#easy-access .ea-increment-sparks i:nth-child(1){left:8%;top:18%;animation-delay:-.7s}#easy-access .ea-increment-sparks i:nth-child(2){left:16%;top:72%;animation-delay:-2.2s}#easy-access .ea-increment-sparks i:nth-child(3){left:27%;top:30%;animation-delay:-3.1s}#easy-access .ea-increment-sparks i:nth-child(4){left:34%;top:83%;animation-delay:-1.1s}#easy-access .ea-increment-sparks i:nth-child(5){left:44%;top:14%;animation-delay:-4s}#easy-access .ea-increment-sparks i:nth-child(6){left:55%;top:77%;animation-delay:-2.8s}#easy-access .ea-increment-sparks i:nth-child(7){left:64%;top:23%;animation-delay:-1.5s}#easy-access .ea-increment-sparks i:nth-child(8){left:73%;top:68%;animation-delay:-3.5s}#easy-access .ea-increment-sparks i:nth-child(9){left:82%;top:17%;animation-delay:-2s}#easy-access .ea-increment-sparks i:nth-child(10){left:91%;top:48%;animation-delay:-.4s}#easy-access .ea-increment-sparks i:nth-child(11){left:10%;top:48%;animation-delay:-3.8s}#easy-access .ea-increment-sparks i:nth-child(12){left:88%;top:82%;animation-delay:-1.9s}
+#easy-access .ea-increment-content{width:min(1080px,calc(100% - 34px));padding:52px 18px;text-align:center}
+#easy-access .ea-increment-kicker{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid rgba(213,188,255,.22);border-radius:999px;background:rgba(255,255,255,.055);box-shadow:inset 0 1px 0 rgba(255,255,255,.08);color:#d9c6ff;font-size:10px;font-weight:950;letter-spacing:2px;text-transform:uppercase}
+#easy-access .ea-increment-content h2{margin:18px 0 7px;background:linear-gradient(90deg,#fff,#bfa4ff 40%,#ff9bd0 72%,#fff);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;font-size:clamp(34px,5.4vw,72px);font-weight:1000;letter-spacing:.06em;line-height:1;text-shadow:0 0 34px rgba(156,91,255,.17);animation:eaIncrementText 5s linear infinite}
+#easy-access .ea-increment-target{min-height:22px;color:#b7aed0;font-size:11px;font-weight:750;letter-spacing:.3px}
+#easy-access .ea-increment-countdown{display:flex;align-items:center;justify-content:center;gap:clamp(7px,1.4vw,18px);margin:42px auto 24px}
+#easy-access .ea-increment-unit{position:relative;overflow:hidden;display:grid;place-items:center;width:clamp(110px,15vw,180px);aspect-ratio:1/.86;border:1px solid rgba(205,179,255,.22);border-radius:22px;background:linear-gradient(155deg,rgba(255,255,255,.115),rgba(255,255,255,.035));box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 22px 44px rgba(0,0,0,.22),0 0 36px rgba(123,75,255,.08);backdrop-filter:blur(12px)}
+#easy-access .ea-increment-unit:before{content:"";position:absolute;inset:-1px;background:linear-gradient(125deg,rgba(148,97,255,.16),transparent 35%,rgba(255,84,177,.14));pointer-events:none}
+#easy-access .ea-increment-unit strong{position:relative;z-index:1;display:block;font-size:clamp(42px,6.5vw,78px);font-weight:1000;line-height:.95;letter-spacing:-.055em;font-variant-numeric:tabular-nums;text-shadow:0 0 25px rgba(199,168,255,.2)}
+#easy-access .ea-increment-unit span{position:relative;z-index:1;margin-top:9px;color:#aba2c2;font-size:9px;font-weight:950;letter-spacing:1.8px}
+#easy-access .ea-increment-sep{color:#9678d5;font-size:clamp(24px,3.6vw,46px);font-weight:900;transform:translateY(-7px);animation:eaIncrementBlink 1s steps(1,end) infinite}
+#easy-access .ea-increment-message{margin-top:3px;color:#e8dcff;font-size:12px;font-weight:850;letter-spacing:.35px}
+#easy-access .ea-increment-owner{width:min(760px,100%);margin:42px auto 0;padding:16px;border:1px solid rgba(255,255,255,.13);border-radius:18px;background:rgba(7,7,24,.46);box-shadow:inset 0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(14px);text-align:left}
+#easy-access .ea-increment-owner-title{display:flex;align-items:center;gap:10px;margin-bottom:12px;color:#fff}.ea-increment-owner-title>span{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#7755ff,#d64bff);font-size:14px}.ea-increment-owner-title b{display:block;font-size:11px}.ea-increment-owner-title small{display:block;margin-top:2px;color:#aaa1c3;font-size:9px}
+#easy-access .ea-increment-owner-fields{display:grid;grid-template-columns:1fr .72fr auto auto;gap:8px;align-items:end}
+#easy-access .ea-increment-owner-fields label{display:grid;gap:5px;color:#c7bddb;font-size:9px;font-weight:850}
+#easy-access .ea-increment-owner-fields input{min-height:38px;padding:8px 10px;border:1px solid rgba(210,190,255,.18);border-radius:10px;background:rgba(255,255,255,.07);color:#fff;outline:none;color-scheme:dark}
+#easy-access .ea-increment-save,#easy-access .ea-increment-clear{min-height:38px;padding:8px 13px;border-radius:10px;font-size:9px;font-weight:950;cursor:pointer}
+#easy-access .ea-increment-save{border:0;background:linear-gradient(135deg,#7046ff,#d742ff 62%,#ff5e9d);color:#fff;box-shadow:0 8px 22px rgba(143,67,255,.28)}
+#easy-access .ea-increment-clear{border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.055);color:#d5cde2}
+#easy-access .ea-increment-owner-note{margin-top:9px;color:#9389aa;font-size:8.5px}
+#easy-access .ea-increment-stage.done .ea-increment-unit{animation:eaIncrementDonePulse 1.3s ease-in-out infinite alternate;border-color:rgba(255,121,204,.5)}
+#easy-access .ea-increment-stage.done .ea-increment-message{font-size:16px;color:#fff}
+#easy-access .ea-increment-stage.done .ea-increment-sparks i{background:#ff8fd0;box-shadow:0 0 18px #ff55b8;animation-duration:1.6s}
+@keyframes eaIncrementSpin{to{transform:rotate(360deg)}}@keyframes eaIncrementSweep{0%,62%,100%{transform:translateX(-120%)}78%{transform:translateX(120%)}}@keyframes eaIncrementFloat{from{transform:translate3d(0,-15px,0) scale(.94)}to{transform:translate3d(18px,15px,0) scale(1.08)}}@keyframes eaIncrementSpark{0%,100%{transform:translateY(0) scale(.7);opacity:.25}50%{transform:translateY(-13px) scale(1.35);opacity:.95}}@keyframes eaIncrementText{to{background-position:220% center}}@keyframes eaIncrementBlink{0%,49%{opacity:.32}50%,100%{opacity:1}}@keyframes eaIncrementDonePulse{to{transform:translateY(-4px);box-shadow:0 23px 52px rgba(147,70,255,.23),0 0 42px rgba(255,80,175,.18)}}
+@media(max-width:780px){#easy-access .ea-increment-stage{min-height:600px;border-radius:20px}#easy-access .ea-increment-countdown{gap:6px;margin-top:34px}#easy-access .ea-increment-unit{width:min(21vw,130px);border-radius:15px}#easy-access .ea-increment-unit strong{font-size:clamp(28px,9vw,50px)}#easy-access .ea-increment-sep{font-size:23px}#easy-access .ea-increment-owner-fields{grid-template-columns:1fr 1fr}#easy-access .ea-increment-save,#easy-access .ea-increment-clear{width:100%}}
+@media(max-width:520px){#easy-access .ea-increment-content{width:calc(100% - 16px);padding:36px 5px}#easy-access .ea-increment-countdown{gap:4px}#easy-access .ea-increment-unit{width:22vw;min-width:0;border-radius:12px}#easy-access .ea-increment-unit strong{font-size:clamp(24px,10vw,42px)}#easy-access .ea-increment-unit span{font-size:6.8px;letter-spacing:.8px}#easy-access .ea-increment-sep{font-size:18px}#easy-access .ea-increment-owner{padding:12px}#easy-access .ea-increment-owner-fields{grid-template-columns:1fr}}
 @media(max-width:1100px){.polished-page-title:has(.ea-top-tabs.show){align-items:flex-start;flex-direction:column;gap:5px}.ea-top-tabs.show{max-width:min(70vw,760px);overflow-x:auto;padding-bottom:2px}.ea-top-tab{flex:0 0 auto}}
 @media(max-width:680px){.ea-top-tabs.show{max-width:calc(100vw - 34px);width:100%}.ea-top-tab{min-height:32px;padding:6px 9px;font-size:8px}}
 #easy-access .ea-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:24px 26px;border-radius:16px;background:linear-gradient(118deg,#172b50 0%,#294f91 68%,#3c69bd 100%);color:#fff;box-shadow:0 18px 42px rgba(25,47,88,.17)}
@@ -2597,6 +2635,7 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
     <button class="ea-top-tab active" type="button" role="tab" aria-selected="true" data-ea-workspace-tab="home">Easy Access</button>
     <button class="ea-top-tab" type="button" role="tab" aria-selected="false" data-ea-workspace-tab="rmd">RMD Calculator</button>
     <button class="ea-top-tab" type="button" role="tab" aria-selected="false" data-ea-workspace-tab="links">Shared Website Links &amp; Login IDs</button>
+    <button class="ea-top-tab ea-top-tab-increment" type="button" role="tab" aria-selected="false" data-ea-workspace-tab="increment">✦ Next Increment</button>
    </div>
    <div class="sub" id="topSub">Shared database not connected yet.</div>
  </div>
@@ -3252,6 +3291,40 @@ body.dark .ct-birthday,body.dark .ct-event-card{background:#131d2e}.body.dark .c
    </div>
   </div>
   </div>
+  <div class="ea-workspace-panel" data-ea-workspace-panel="increment">
+   <section class="ea-increment-stage" id="eaIncrementStage">
+    <div class="ea-increment-gridfx" aria-hidden="true"></div>
+    <div class="ea-increment-orb ea-increment-orb-a" aria-hidden="true"></div>
+    <div class="ea-increment-orb ea-increment-orb-b" aria-hidden="true"></div>
+    <div class="ea-increment-sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="ea-increment-content">
+     <div class="ea-increment-kicker">✦ THE COUNTDOWN IS ON ✦</div>
+     <h2>NEXT INCREMENT</h2>
+     <div class="ea-increment-target" id="eaIncrementTarget">System Owner has not set the next increment yet.</div>
+     <div class="ea-increment-countdown" id="eaIncrementCountdown" aria-live="polite">
+      <div class="ea-increment-unit"><strong id="eaIncrementDays">00</strong><span>DAYS</span></div>
+      <div class="ea-increment-sep">:</div>
+      <div class="ea-increment-unit"><strong id="eaIncrementHours">00</strong><span>HOURS</span></div>
+      <div class="ea-increment-sep">:</div>
+      <div class="ea-increment-unit"><strong id="eaIncrementMinutes">00</strong><span>MINUTES</span></div>
+      <div class="ea-increment-sep">:</div>
+      <div class="ea-increment-unit"><strong id="eaIncrementSeconds">00</strong><span>SECONDS</span></div>
+     </div>
+     <div class="ea-increment-message" id="eaIncrementMessage">Something good is getting closer ✨</div>
+     <div class="ea-increment-owner" id="eaIncrementOwner" hidden>
+      <div class="ea-increment-owner-title"><span>⚙</span><div><b>System Owner Control</b><small>Set the shared countdown target in Bangladesh time (UTC+6).</small></div></div>
+      <div class="ea-increment-owner-fields">
+       <label>Date<input id="eaIncrementDate" type="date"></label>
+       <label>Time<input id="eaIncrementTime" type="time" step="60"></label>
+       <button class="ea-increment-save" id="eaIncrementSave" type="button">Set Countdown</button>
+       <button class="ea-increment-clear" id="eaIncrementClear" type="button">Clear</button>
+      </div>
+      <div class="ea-increment-owner-note" id="eaIncrementOwnerNote">Only the System Owner can change this timer.</div>
+     </div>
+    </div>
+   </section>
+  </div>
+
   <div class="ea-credential-overlay" id="eaCredentialModal" aria-hidden="true">
    <div class="ea-credential-modal" role="dialog" aria-modal="true" aria-labelledby="eaCredentialTitle">
     <div class="ea-credential-modal-head"><div><h3 id="eaCredentialTitle">Add Existing Login ID</h3><div class="desc" id="eaCredentialLinkName">Shared Website Link</div></div><button class="btn" id="eaCredentialClose" type="button" aria-label="Close">×</button></div>
@@ -7280,7 +7353,7 @@ System Owner will NOT approve or deny this request. The Team Lead will make the 
 (()=>{
  const root=document.getElementById('easy-access');if(!root)return;
  const q=id=>document.getElementById(id),safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const DAY=86400000;let viewer=null,links=[],credentials=[],revealed=new Set(),editId='',credentialEditId='',credentialLinkId='',loaded=false,loading=false,credentialError='';
+ const DAY=86400000;let viewer=null,links=[],credentials=[],revealed=new Set(),editId='',credentialEditId='',credentialLinkId='',loaded=false,loading=false,credentialError='',incrementRow=null,incrementLoaded=false,incrementLoading=false,incrementInterval=null,incrementChannel=null,serverOffsetMs=0;
  const isoToday=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
  const parseIso=value=>{const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return null;const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));return d.getUTCFullYear()===+m[1]&&d.getUTCMonth()===+m[2]-1&&d.getUTCDate()===+m[3]?d:null};
  const iso=d=>`${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
@@ -7316,18 +7389,63 @@ System Owner will NOT approve or deny this request. The Team Lead will make the 
  async function saveCredential(){const item=credentials.find(x=>x.id===credentialEditId),link=links.find(x=>x.id===credentialLinkId),account_label=q('eaCredentialLabel').value.trim(),username=q('eaCredentialUsername').value.trim(),password=q('eaCredentialPassword').value,button=q('eaCredentialSave');if(!link)return;if(!account_label){toast('Enter the ID Owner / Person Name.',true);return}if(!username){toast('Enter the existing username or login ID.',true);return}if(!item&&!password){toast('Enter the existing website password.',true);return}const message=item?`Update the saved ${link.site_name} login belonging to “${account_label}”? This does not change the external website account.`:`Save the existing ${link.site_name} login belonging to “${account_label}” for approved users to copy and paste?`;if(!confirm(message))return;try{button.disabled=true;button.textContent='Saving…';await window.dailyOverviewAdminAction('manage_easy_credential',{verb:item?'update':'create',id:item?.id,link_id:link.id,account_label,username,password,expected_version:item?.version});closeCredentialModal();loaded=false;await loadLinks(true);toast(item?'Saved login ID updated.':'Existing login ID saved.')}catch(error){toast(error.message||String(error),true)}finally{button.disabled=false;button.textContent=credentialEditId?'Save Changes':'Save Login ID'}}
  async function deleteCredential(id){const item=credentials.find(x=>x.id===id),link=links.find(x=>x.id===item?.link_id);if(!item||!confirm(`Remove the saved login belonging to “${item.account_label}” from ${link?.site_name||'this website'}? This does not delete the actual external website account.`))return;try{await window.dailyOverviewAdminAction('manage_easy_credential',{verb:'delete',id:item.id,expected_version:item.version});revealed.delete(id);loaded=false;await loadLinks(true);toast('Saved login ID removed.')}catch(error){toast(error.message||String(error),true)}}
  async function copyText(value,label){try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(value);else{const input=document.createElement('textarea');input.value=value;input.style.position='fixed';input.style.opacity='0';document.body.appendChild(input);input.select();document.execCommand('copy');input.remove()}toast(`${label} copied.`)}catch{toast(`Could not copy ${label.toLowerCase()}.`,true)}}
+ const canManageIncrement=()=>viewer?.role==='System Owner';
+ const bdTargetDate=value=>{const match=String(value||'').match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);if(!match)return null;const d=new Date(`${match[1]}T${match[2]}:00+06:00`);return Number.isNaN(d.getTime())?null:d};
+ const bdParts=value=>{if(!value)return{date:'',time:''};const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dhaka',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(value)),get=t=>parts.find(x=>x.type===t)?.value||'';return{date:`${get('year')}-${get('month')}-${get('day')}`,time:`${get('hour')}:${get('minute')}`}};
+ const formatIncrementTarget=value=>value?new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dhaka',weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(value))+' • Bangladesh Time':'System Owner has not set the next increment yet.';
+ function incrementNow(){return Date.now()+serverOffsetMs}
+ function renderIncrement(){
+  const stage=q('eaIncrementStage'),target=q('eaIncrementTarget'),message=q('eaIncrementMessage'),owner=q('eaIncrementOwner');
+  if(!stage||!target||!message)return;
+  if(owner)owner.hidden=!canManageIncrement();
+  const targetMs=incrementRow?.target_at?new Date(incrementRow.target_at).getTime():NaN;
+  target.textContent=formatIncrementTarget(incrementRow?.target_at);
+  if(!Number.isFinite(targetMs)){
+   ['Days','Hours','Minutes','Seconds'].forEach(key=>{const el=q('eaIncrement'+key);if(el)el.textContent='00'});
+   stage.classList.remove('done');message.textContent='The next milestone is waiting to be scheduled ✦';return;
+  }
+  const diff=Math.max(0,targetMs-incrementNow()),total=Math.floor(diff/1000),days=Math.floor(total/86400),hours=Math.floor(total%86400/3600),minutes=Math.floor(total%3600/60),seconds=total%60;
+  q('eaIncrementDays').textContent=String(days).padStart(2,'0');q('eaIncrementHours').textContent=String(hours).padStart(2,'0');q('eaIncrementMinutes').textContent=String(minutes).padStart(2,'0');q('eaIncrementSeconds').textContent=String(seconds).padStart(2,'0');
+  const done=targetMs<=incrementNow();stage.classList.toggle('done',done);message.textContent=done?'IT’S INCREMENT TIME — YOU MADE IT! ✨🎉':'Something good is getting closer ✨';
+ }
+ function startIncrementClock(){if(incrementInterval)return;renderIncrement();incrementInterval=setInterval(renderIncrement,1000)}
+ function stopIncrementClock(){if(incrementInterval){clearInterval(incrementInterval);incrementInterval=null}}
+ function fillIncrementOwner(){const parts=bdParts(incrementRow?.target_at);if(q('eaIncrementDate'))q('eaIncrementDate').value=parts.date;if(q('eaIncrementTime'))q('eaIncrementTime').value=parts.time}
+ async function loadIncrementTimer(force=false){
+  if(!viewer||incrementLoading||(incrementLoaded&&!force)){renderIncrement();return}
+  const db=window.dailyOverviewGetClient?.();if(!db)return;incrementLoading=true;
+  try{
+   const [timerResult,clockResult]=await Promise.all([db.from('quality_increment_timer').select('id,heading,target_at,updated_by_initial,updated_at').eq('id','next_increment').maybeSingle(),db.rpc('quality_server_now')]);
+   if(timerResult.error)throw timerResult.error;incrementRow=timerResult.data||{id:'next_increment',heading:'NEXT INCREMENT',target_at:null};if(!clockResult.error&&clockResult.data){const serverMs=new Date(clockResult.data).getTime();if(Number.isFinite(serverMs))serverOffsetMs=serverMs-Date.now()}
+   incrementLoaded=true;fillIncrementOwner();renderIncrement();startIncrementClock();subscribeIncrementTimer();
+  }catch(error){q('eaIncrementTarget').textContent=error.message||String(error);toast('Could not load Next Increment timer.',true)}
+  finally{incrementLoading=false}
+ }
+ function subscribeIncrementTimer(){
+  if(incrementChannel||!viewer)return;const db=window.dailyOverviewGetClient?.();if(!db)return;
+  incrementChannel=db.channel('quality-increment-timer-live').on('postgres_changes',{event:'UPDATE',schema:'public',table:'quality_increment_timer',filter:'id=eq.next_increment'},payload=>{incrementRow=payload.new;incrementLoaded=true;fillIncrementOwner();renderIncrement()}).subscribe();
+ }
+ async function saveIncrementTimer(clear=false){
+  if(!canManageIncrement())return;const db=window.dailyOverviewGetClient?.(),button=clear?q('eaIncrementClear'):q('eaIncrementSave'),note=q('eaIncrementOwnerNote');if(!db||!button)return;
+  let targetAt=null;
+  if(!clear){const date=q('eaIncrementDate').value,time=q('eaIncrementTime').value;if(!date||!time){toast('Choose both increment date and time.',true);return}const target=bdTargetDate(`${date}T${time}`);if(!target){toast('Choose a valid date and time.',true);return}if(target.getTime()<=incrementNow()){toast('Increment target must be in the future.',true);return}targetAt=target.toISOString()}
+  try{button.disabled=true;note.textContent=clear?'Clearing shared countdown…':'Saving shared countdown…';const {data,error}=await db.from('quality_increment_timer').update({target_at:targetAt,updated_by:viewer.id,updated_by_initial:viewer.initial,updated_at:new Date().toISOString()}).eq('id','next_increment').select('id,heading,target_at,updated_by_initial,updated_at').single();if(error)throw error;incrementRow=data;incrementLoaded=true;fillIncrementOwner();renderIncrement();note.textContent=clear?'Countdown cleared.':'Countdown updated for everyone.';toast(clear?'Next Increment timer cleared.':'Next Increment countdown updated.')}
+  catch(error){note.textContent=error.message||String(error);toast(error.message||String(error),true)}
+  finally{button.disabled=false}
+ }
  const topTabs=q('eaTopTabs');
  function setWorkspaceTab(tab='home',options={load:true}){
-  const allowed=new Set(['home','rmd','links']);if(!allowed.has(tab))tab='home';
+  const allowed=new Set(['home','rmd','links','increment']);if(!allowed.has(tab))tab='home';
   document.querySelectorAll('[data-ea-workspace-tab]').forEach(button=>{const active=button.dataset.eaWorkspaceTab===tab;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active))});
   root.querySelectorAll('[data-ea-workspace-panel]').forEach(panel=>panel.classList.toggle('active',panel.dataset.eaWorkspacePanel===tab));
-  if(tab==='links'&&options.load)loadLinks();
+  if(tab==='links'&&options.load)loadLinks();if(tab==='increment'&&options.load)loadIncrementTimer();
  }
  function showWorkspaceTabs(show){topTabs?.classList.toggle('show',!!show)}
  topTabs?.addEventListener('click',event=>{const button=event.target.closest('[data-ea-workspace-tab]');if(button)setWorkspaceTab(button.dataset.eaWorkspaceTab)});
+ q('eaIncrementSave')?.addEventListener('click',()=>saveIncrementTimer(false));q('eaIncrementClear')?.addEventListener('click',()=>{if(confirm('Clear the shared Next Increment countdown for everyone?'))saveIncrementTimer(true)});
  q('eaAsOf').value=isoToday();['eaDob','eaAsOf','eaHireDate','eaTerminationDate'].forEach(enableDatePaste);q('eaCalculateAge').addEventListener('click',calculate);q('eaResetAge').addEventListener('click',resetAge);q('eaSearchAch').addEventListener('click',()=>launchRouting('ach'));q('eaSearchWire').addEventListener('click',()=>launchRouting('wire'));q('eaOpenDirectory').addEventListener('click',()=>window.open('https://www.frbservices.org/resources/e-payments-routing-directory/','_blank','noopener,noreferrer'));q('eaSaveLink').addEventListener('click',saveLink);q('eaCancelLinkEdit').addEventListener('click',clearLinkEditor);q('eaRefreshLinks').addEventListener('click',()=>loadLinks(true));q('eaCredentialSave').addEventListener('click',saveCredential);q('eaCredentialClose').addEventListener('click',closeCredentialModal);q('eaCredentialCancel').addEventListener('click',closeCredentialModal);q('eaCredentialModal').addEventListener('click',event=>{if(event.target===q('eaCredentialModal'))closeCredentialModal()});
  q('eaLinkList').addEventListener('click',event=>{const edit=event.target.closest('[data-ea-edit]'),del=event.target.closest('[data-ea-delete]'),add=event.target.closest('[data-ea-credential-add]'),editCredential=event.target.closest('[data-ea-credential-edit]'),deleteCredentialButton=event.target.closest('[data-ea-credential-delete]'),reveal=event.target.closest('[data-ea-reveal]'),copy=event.target.closest('[data-ea-copy]');if(edit)return editLink(edit.dataset.eaEdit);if(del)return deleteLink(del.dataset.eaDelete);if(add)return openCredentialModal(add.dataset.eaCredentialAdd);if(editCredential){const item=credentials.find(x=>x.id===editCredential.dataset.eaCredentialEdit);if(item)return openCredentialModal(item.link_id,item.id)}if(deleteCredentialButton)return deleteCredential(deleteCredentialButton.dataset.eaCredentialDelete);if(reveal){const id=reveal.dataset.eaReveal;revealed.has(id)?revealed.delete(id):revealed.add(id);return renderLinks()}if(copy){const item=credentials.find(x=>x.id===copy.dataset.eaCredential);if(item)return copyText(copy.dataset.eaCopy==='password'?item.password:item.username,copy.dataset.eaCopy==='password'?'Password':'Username')}});
- document.addEventListener('keydown',event=>{if(event.key==='Escape'&&q('eaCredentialModal').classList.contains('show'))closeCredentialModal()});document.querySelector('.navbtn[data-page="easy-access"]')?.addEventListener('click',()=>{showWorkspaceTabs(true);setWorkspaceTab('home',{load:false})});document.querySelectorAll('.navbtn[data-page]:not([data-page="easy-access"])').forEach(button=>button.addEventListener('click',()=>showWorkspaceTabs(false)));window.addEventListener('daily-overview-session-ready',event=>{viewer=event.detail;renderLinks();if(root.classList.contains('active')&&q('easy-access')?.querySelector('[data-ea-workspace-panel="links"].active'))loadLinks()});window.addEventListener('daily-overview-session-ended',()=>{viewer=null;links=[];credentials=[];revealed.clear();loaded=false;clearLinkEditor();closeCredentialModal();renderLinks()});if(window.dailyOverviewCurrentUser){viewer=window.dailyOverviewCurrentUser;renderLinks()}showWorkspaceTabs(root.classList.contains('active'));setWorkspaceTab('home',{load:false})
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&q('eaCredentialModal').classList.contains('show'))closeCredentialModal()});document.querySelector('.navbtn[data-page="easy-access"]')?.addEventListener('click',()=>{showWorkspaceTabs(true);setWorkspaceTab('home',{load:false})});document.querySelectorAll('.navbtn[data-page]:not([data-page="easy-access"])').forEach(button=>button.addEventListener('click',()=>showWorkspaceTabs(false)));window.addEventListener('daily-overview-session-ready',event=>{viewer=event.detail;renderLinks();renderIncrement();if(root.classList.contains('active')&&q('easy-access')?.querySelector('[data-ea-workspace-panel="links"].active'))loadLinks();if(root.classList.contains('active')&&q('easy-access')?.querySelector('[data-ea-workspace-panel="increment"].active'))loadIncrementTimer()});window.addEventListener('daily-overview-session-ended',()=>{const db=window.dailyOverviewGetClient?.();if(incrementChannel&&db)db.removeChannel(incrementChannel);incrementChannel=null;stopIncrementClock();incrementRow=null;incrementLoaded=false;viewer=null;links=[];credentials=[];revealed.clear();loaded=false;clearLinkEditor();closeCredentialModal();renderLinks();renderIncrement()});if(window.dailyOverviewCurrentUser){viewer=window.dailyOverviewCurrentUser;renderLinks();renderIncrement()}showWorkspaceTabs(root.classList.contains('active'));setWorkspaceTab('home',{load:false})
 })();
 </script>
 <script>
